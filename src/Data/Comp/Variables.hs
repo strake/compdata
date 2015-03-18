@@ -145,7 +145,7 @@ varsToHoles t = cata alg t Set.empty
 
 -- |Algebra for checking whether a variable is contained in a term, except those
 -- that are bound.
-containsVarAlg :: (Eq v, HasVars f v, Traversable f, Ord v) => v -> Alg f Bool
+containsVarAlg :: (HasVars f v, Traversable f, Ord v) => v -> Alg f Bool
 containsVarAlg v t = foldlBoundVars run local t
     where local = case isVar t of
                     Just v' -> v == v'
