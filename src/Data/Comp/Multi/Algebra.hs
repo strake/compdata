@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE Rank2Types          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -164,7 +163,7 @@ cataM' f = run
 
 
 -- | This type represents uniform signature function specification.
-type SigFun f g = forall (a :: * -> *). f a :-> g a
+type SigFun f g = forall a . f a :-> g a
 
 -- | This type represents context function.
 type CxtFun f g = forall h . SigFun (Cxt h f) (Cxt h g)
@@ -229,7 +228,7 @@ hom :: (HFunctor g) => SigFun f g -> Hom f g
 hom f = simpCxt . f
 
 -- | This type represents monadic signature functions.
-type SigFunM m f g = forall (a :: * -> *) . NatM m (f a) (g a)
+type SigFunM m f g = forall a . NatM m (f a) (g a)
 
 
 -- | This type represents monadic context function.

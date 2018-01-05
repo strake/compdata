@@ -1,6 +1,5 @@
 {-# LANGUAGE EmptyDataDecls      #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -42,7 +41,7 @@ import Control.Monad
 
 import Unsafe.Coerce
 
-type Const (f :: (* -> *) -> * -> *) = f (K ())
+type Const f = f (K ())
 
 -- | This function converts a constant to a term. This assumes that
 -- the argument is indeed a constant, i.e. does not have a value for

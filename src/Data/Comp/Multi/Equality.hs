@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE TypeOperators     #-}
 --------------------------------------------------------------------------------

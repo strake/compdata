@@ -4,7 +4,6 @@
   FlexibleContexts,
   TypeOperators,
   GADTs,
-  KindSignatures,
   IncoherentInstances #-}
 
 -- base values

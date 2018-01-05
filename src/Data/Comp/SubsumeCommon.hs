@@ -2,7 +2,6 @@
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE PolyKinds            #-}
 
 --------------------------------------------------------------------------------
 -- |

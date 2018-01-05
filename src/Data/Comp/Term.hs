@@ -1,7 +1,6 @@
 {-# LANGUAGE EmptyDataDecls       #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE GADTs                #-}
-{-# LANGUAGE KindSignatures       #-}
 {-# LANGUAGE Rank2Types           #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 --------------------------------------------------------------------------------

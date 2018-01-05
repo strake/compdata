@@ -4,6 +4,9 @@
 {-# LANGUAGE OverlappingInstances  #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -113,23 +116,23 @@ isVar' b t = do v <- isVar t
 -- | This combinator pairs every argument of a given constructor with
 -- the set of (newly) bound variables according to the corresponding
 -- 'HasVars' type class instance.
-getBoundVars :: (HasVars f v, Traversable f) => f a -> f (Set v, a)
+getBoundVars :: forall f v a . (HasVars f v, Traversable f) => f a -> f (Set v, a)
 getBoundVars t = let n = number t
-                     m = bindsVars n
+                     m = bindsVars n :: _ a _
                      trans (Numbered i x) = (lookupNumMap Set.empty i m, x)
                  in fmap trans n
 
 -- | This combinator combines 'getBoundVars' with the generic 'fmap' function.
-fmapBoundVars :: (HasVars f v, Traversable f) => (Set v -> a -> b) -> f a -> f b
+fmapBoundVars :: forall f v a b . (HasVars f v, Traversable f) => (Set v -> a -> b) -> f a -> f b
 fmapBoundVars f t = let n = number t
-                        m = bindsVars n
+                        m = bindsVars n :: _ a _
                         trans (Numbered i x) = f (lookupNumMap Set.empty i m) x
                     in fmap trans n
 
 -- | This combinator combines 'getBoundVars' with the generic 'foldl' function.
-foldlBoundVars :: (HasVars f v, Traversable f) => (b -> Set v -> a -> b) -> b -> f a -> b
+foldlBoundVars :: forall f v a b . (HasVars f v, Traversable f) => (b -> Set v -> a -> b) -> b -> f a -> b
 foldlBoundVars f e t = let n = number t
-                           m = bindsVars n
+                           m = bindsVars n :: _ a _
                            trans x (Numbered i y) = f x (lookupNumMap Set.empty i m) y
                        in foldl trans e n
 

@@ -1,4 +1,3 @@
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TupleSections #-}
