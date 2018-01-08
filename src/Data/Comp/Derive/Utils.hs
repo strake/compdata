@@ -28,8 +28,10 @@ reportError = report True
 
 #if __GLASGOW_HASKELL__ < 800
 data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] [Name]
-#else
+#elsif __GLASGOW_HASKELL__ < 820
 data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] Cxt
+#else
+data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] [DerivClause]
 #endif
 
 {-|
