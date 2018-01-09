@@ -42,18 +42,19 @@ module Data.Comp.Variables
     empty
     ) where
 
+import Control.Monad (guard)
 import Data.Comp.Algebra
 import Data.Comp.Derive
 import Data.Comp.Mapping
 import Data.Comp.Term
 import Data.Comp.Ops
-import Data.Foldable hiding (elem, notElem)
+import Data.Foldable
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe
 import Data.Set (Set)
 import qualified Data.Set as Set
-import Prelude hiding (foldl, or)
+import Prelude hiding (foldl)
 
 -- | This type represents substitutions of contexts, i.e. finite
 -- mappings from variables to contexts.
@@ -75,21 +76,21 @@ class HasVars f v where
     -- | Indicates the set of variables bound by the @f@ constructor
     -- for each argument of the constructor. For example for a
     -- non-recursive let binding:
-    -- 
+    --
     -- @
     -- data Let e = Let Var e e
     -- instance HasVars Let Var where
     --   bindsVars (Let v x y) = y |-> Set.singleton v
     -- @
-    -- 
+    --
     -- If, instead, the let binding is recursive, the methods has to
     -- be implemented like this:
-    -- 
+    --
     -- @
     --   bindsVars (Let v x y) = x |-> Set.singleton v &
     --                           y |-> Set.singleton v
     -- @
-    -- 
+    --
     -- This indicates that the scope of the bound variable also
     -- extends to the right-hand side of the variable binding.
     --
@@ -109,9 +110,7 @@ instance HasVars f v => HasVars (f :&: a) v where
 
 isVar' :: (HasVars f v, Ord v) => Set v -> f a -> Maybe v
 isVar' b t = do v <- isVar t
-                if v `Set.member` b
-                   then Nothing
-                   else return v
+                v <$ guard (v `Set.member` b)
 
 -- | This combinator pairs every argument of a given constructor with
 -- the set of (newly) bound variables according to the corresponding

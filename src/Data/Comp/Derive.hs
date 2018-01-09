@@ -9,8 +9,7 @@
 -- Portability :  non-portable (GHC Extensions)
 --
 -- This module contains functionality for automatically deriving boilerplate
--- code using Template Haskell. Examples include instances of 'Functor',
--- 'Foldable', and 'Traversable'.
+-- code using Template Haskell.
 --
 --------------------------------------------------------------------------------
 
@@ -25,10 +24,6 @@ module Data.Comp.Derive
      module Data.Comp.Derive.Equality,
      -- ** OrdF
      module Data.Comp.Derive.Ordering,
-     -- ** Foldable
-     module Data.Comp.Derive.Foldable,
-     -- ** Traversable
-     module Data.Comp.Derive.Traversable,
      -- ** HaskellStrict
      module Data.Comp.Derive.HaskellStrict,
      -- ** Arbitrary
@@ -49,13 +44,11 @@ import Control.DeepSeq (NFData (..))
 import Data.Comp.Derive.Arbitrary
 import Data.Comp.Derive.DeepSeq
 import Data.Comp.Derive.Equality
-import Data.Comp.Derive.Foldable
 import Data.Comp.Derive.HaskellStrict
 import Data.Comp.Derive.Ordering
 import Data.Comp.Derive.Show
 import Data.Comp.Derive.SmartAConstructors
 import Data.Comp.Derive.SmartConstructors
-import Data.Comp.Derive.Traversable
 import Data.Comp.Derive.Utils (derive, liftSumGen)
 import Data.Comp.Ops ((:+:), caseF)
 

@@ -21,7 +21,7 @@ module Data.Comp.Multi.Derive.Equality
 
 import Data.Comp.Derive.Utils
 import Data.Comp.Multi.Equality
-import Language.Haskell.TH hiding (Cxt, match)
+import Language.Haskell.TH hiding (Cxt)
 
 {-| Derive an instance of 'EqHF' for a type constructor of any higher-order
   kind taking at least two arguments. -}

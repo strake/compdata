@@ -29,7 +29,7 @@ import Data.Comp.Term
 
 instance (Functor f, ShowF f) => ShowF (Cxt h f) where
     showF (Hole s) = s
-    showF (Term t) = showF $ fmap showF t
+    showF (Term t) = showF $ showF <$> t
 
 instance (Functor f, ShowF f, Show a) => Show (Cxt h f a) where
     show = free showF show

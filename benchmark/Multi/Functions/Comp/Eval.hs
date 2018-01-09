@@ -1,6 +1,5 @@
 {-# LANGUAGE
   GADTs,
-  TemplateHaskell,
   MultiParamTypeClasses,
   FlexibleInstances,
   FlexibleContexts,
@@ -21,7 +20,7 @@ import Data.Comp.Multi.HEquality
 class Eval e v where
     evalAlg :: Alg e (Term v)
 
-eval :: (HFunctor e, Eval e v) => Term e :-> (Term v)
+eval :: (HFunctor e, Eval e v) => Term e :-> Term v
 eval = cata evalAlg
 
 instance (Eval f v, Eval g v) => Eval (f :++: g) v where
@@ -41,7 +40,7 @@ getBool t = case project t of
              Just (VBool x) -> x
              Nothing -> undefined
 
-getPair :: (Value :<<: v) => Term v (s,t) -> ((Term v s), (Term v t))
+getPair :: (Value :<<: v) => Term v (s,t) -> (Term v s, Term v t)
 getPair t = case project t of
               Just (VPair x y) -> (x, y)
               Nothing -> undefined
@@ -75,4 +74,4 @@ desugarEvalAlg  :: Alg SugarSig ValueExpr
 desugarEvalAlg = evalAlg  `compAlg` (desugarAlg :: Hom SugarSig ExprSig)
 
 desugarEval' :: SugarExpr :-> ValueExpr
-desugarEval' e = cata desugarEvalAlg e
+desugarEval' = cata desugarEvalAlg

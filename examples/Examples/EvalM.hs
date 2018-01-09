@@ -22,7 +22,8 @@ module Examples.EvalM where
 
 import Data.Comp
 import Data.Comp.Derive
-import Control.Monad (liftM)
+import Data.Function (on)
+import Control.Applicative (liftA2)
 import Examples.Common
 
 -- Monadic term evaluation algebra
@@ -39,14 +40,10 @@ instance (f :<: v) => EvalM f v where
   evalAlgM = return . inject -- default instance
 
 instance (Value :<: v) => EvalM Op v where
-  evalAlgM (Add x y)  = do n1 <- projC x
-                           n2 <- projC y
-                           return $ iConst $ n1 + n2
-  evalAlgM (Mult x y) = do n1 <- projC x
-                           n2 <- projC y
-                           return $ iConst $ n1 * n2
-  evalAlgM (Fst v)    = liftM fst $ projP v
-  evalAlgM (Snd v)    = liftM snd $ projP v
+  evalAlgM (Add x y)  = iConst <$> (liftA2 (+) `on` projC) x y
+  evalAlgM (Mult x y) = iConst <$> (liftA2 (*) `on` projC) x y
+  evalAlgM (Fst v)    = fst <$> projP v
+  evalAlgM (Snd v)    = snd <$> projP v
 
 projC :: (Value :<: v) => Term v -> Maybe Int
 projC v = case project v of

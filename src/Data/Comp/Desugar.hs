@@ -19,7 +19,7 @@
 
 module Data.Comp.Desugar where
 
-import Data.Comp
+import Data.Comp hiding (fmap)
 
 -- |The desugaring term homomorphism.
 class (Functor f, Functor g) => Desugar f g where

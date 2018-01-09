@@ -21,7 +21,7 @@ module Data.Comp.Derive.Arbitrary
      makeArbitrary
     )where
 
-import Data.Comp.Derive.Utils hiding (derive)
+import Data.Comp.Derive.Utils
 import qualified Data.DeriveTH as D
 import Language.Haskell.TH
 import Test.QuickCheck

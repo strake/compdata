@@ -36,7 +36,7 @@ instance (ValueT :<: t, Monad m) => InferType Value t m where
 
 checkOp :: (g :<: f, Eq (g (Term f)), Monad m) =>
            [g (Term f)] -> g (Term f) -> [Term f] -> m (Term f)
-checkOp exs et tys = if and (zipWith (\ f t -> maybe False (==f) (project t)) exs tys) 
+checkOp exs et tys = if and (zipWith (\ f t -> (== Just f) (project t)) exs tys)
                      then return (inject et)
                      else fail""
 
@@ -49,10 +49,10 @@ instance (ValueT :<: t, EqF t, Monad m) => InferType Op t m where
     inferTypeAlg (Not x) = checkOp [TBool] TBool [x]
     inferTypeAlg (If b x y) = case project b of
                                  Just TBool | x == y -> return x
-                                 _ -> fail "" 
+                                 _ -> fail ""
     inferTypeAlg (Eq x y) = if x == y then return iTBool else fail ""
     inferTypeAlg (Proj p x) = case project x of
-                                Just (TPair x1 x2) -> 
+                                Just (TPair x1 x2) ->
                                     case p of
                                       ProjLeft -> return x1
                                       ProjRight -> return x2
@@ -75,14 +75,14 @@ desugTypeAlg  :: AlgM Err SugarSig BaseType
 desugTypeAlg = inferTypeAlg  `compAlgM'` (desugAlg :: Hom SugarSig ExprSig)
 
 desugType' :: SugarExpr -> Err BaseType
-desugType' e = cataM desugTypeAlg e
+desugType' = cataM desugTypeAlg
 
 -- pure type inference
 
 class InferType2 f t where
-    inferTypeAlg2 :: f (Term t) -> (Term t)
+    inferTypeAlg2 :: f (Term t) -> Term t
 
-inferType2 :: (Functor f, InferType2 f t) => Term f -> (Term t)
+inferType2 :: (Functor f, InferType2 f t) => Term f -> Term t
 inferType2 = cata inferTypeAlg2
 
 inferBaseType2 :: (Functor f, InferType2 f ValueT) => Term f -> BaseType
@@ -96,8 +96,8 @@ instance (ValueT :<: t) => InferType2 Value t where
     inferTypeAlg2 (VPair x y) = inject $ TPair x y
 
 checkOp2 :: (g :<: f, Eq (g (Term f))) =>
-           [g (Term f)] -> g (Term f) -> [Term f] -> (Term f)
-checkOp2 exs ret tys = if and (zipWith (\ f t -> maybe False (==f) (project t)) exs tys)
+           [g (Term f)] -> g (Term f) -> [Term f] -> Term f
+checkOp2 exs ret tys = if and (zipWith (\ f t -> (== Just f) (project t)) exs tys)
                        then inject ret
                        else error ""
 
@@ -113,7 +113,7 @@ instance (ValueT :<: t, EqF t) => InferType2 Op t where
                                  _ -> error ""
     inferTypeAlg2 (Eq x y) = if x == y then iTBool else error ""
     inferTypeAlg2 (Proj p x) = case project x of
-                                Just (TPair x1 x2) -> 
+                                Just (TPair x1 x2) ->
                                     case p of
                                       ProjLeft -> x1
                                       ProjRight -> x2
@@ -136,4 +136,4 @@ desugTypeAlg2  :: Alg SugarSig BaseType
 desugTypeAlg2 = inferTypeAlg2  `compAlg` (desugAlg :: Hom SugarSig ExprSig)
 
 desugType2' :: SugarExpr -> BaseType
-desugType2' e = cata desugTypeAlg2 e
+desugType2' = cata desugTypeAlg2

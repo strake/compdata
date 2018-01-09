@@ -23,22 +23,20 @@ module Data.Comp.Derive.HaskellStrict
      , haskellStrict'
     ) where
 
-import Control.Monad hiding (mapM, sequence)
+import Control.Monad
 import Data.Comp.Derive.Utils
 import Data.Comp.Sum
 import Data.Comp.Thunk
-import Data.Foldable hiding (any, or)
+import Data.Foldable
 import Data.Maybe
 import Data.Traversable
 import Language.Haskell.TH
-import Prelude hiding (foldl, foldr, mapM, sequence)
-import qualified Prelude as P (all, foldl, foldr, mapM)
 
 
 class HaskellStrict f where
     thunkSequence :: (Monad m) => f (TermT m g) -> m (f (TermT m g))
     thunkSequenceInject :: (Monad m, f :<: m :+: g) => f (TermT m g) -> TermT m g
-    thunkSequenceInject t = thunk $ liftM inject $ thunkSequence t
+    thunkSequenceInject t = thunk $ inject <$> thunkSequence t
     thunkSequenceInject' :: (Monad m, f :<: m :+: g) => f (TermT m g) -> TermT m g
     thunkSequenceInject' = thunkSequenceInject
 
@@ -62,15 +60,15 @@ makeHaskellStrict fname = do
       argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
       classType = AppT (ConT ''HaskellStrict) complType
-  constrs_ <- P.mapM (liftM (isFarg fArg) . normalConStrExp) constrs
-  if foldr (\ y x -> x && P.all null (snd y)) True constrs_
+  constrs_ <- mapM (fmap (isFarg fArg) . normalConStrExp) constrs
+  if foldr (\ y x -> x && all null (snd y)) True constrs_
    then do
      sequenceDecl <- valD (varP 'thunkSequence) (normalB [|return|]) []
      injectDecl <- valD (varP 'thunkSequenceInject) (normalB [|inject|]) []
      injectDecl' <- valD (varP 'thunkSequenceInject') (normalB [|inject|]) []
      return [mkInstanceD [] classType [sequenceDecl, injectDecl, injectDecl']]
    else do
-     (sc',matchPat,ic') <- liftM unzip3 $ P.mapM mkClauses constrs_
+     (sc',matchPat,ic') <- unzip3 <$> mapM mkClauses constrs_
      xn <- newName "x"
      doThunk <- [|thunk|]
      let sequenceDecl = FunD 'thunkSequence sc'
@@ -78,7 +76,7 @@ makeHaskellStrict fname = do
          injectDecl' = FunD 'thunkSequenceInject' ic'
      return [mkInstanceD [] classType [sequenceDecl, injectDecl, injectDecl']]
       where isFarg fArg (constr, args, gadtTy) = (constr, map (containsStr (getUnaryFArg fArg gadtTy)) args)
-            
+
 #if __GLASGOW_HASKELL__ < 800
             containsStr fArg (IsStrict,ty) = ty `containsType'` fArg
             containsStr fArg (Unpacked,ty) = ty `containsType'` fArg
@@ -99,16 +97,16 @@ makeHaskellStrict fname = do
                    let pat = mkCPat constr varNs
                        fvars = catMaybes $ filterVars args varNs (curry Just) (const Nothing)
                        allVars = map varE varNs
-                       conAp = P.foldl appE (conE constr) allVars
+                       conAp = foldl appE (conE constr) allVars
                        conBind (d, x) y = [| $(deepThunk d `appE` varE x)  >>= $(lamE [varP x] y)|]
-                   bodySC' <- P.foldr conBind [|return $conAp|] fvars
+                   bodySC' <- foldr conBind [|return $conAp|] fvars
                    let sc' = Clause [pat] (NormalB bodySC') []
                    bodyMatch <- case fvars of
                              [] -> [|return (inject $conAp)|]
-                             _ -> P.foldr conBind [|return (inject $conAp)|] fvars
+                             _ -> foldr conBind [|return (inject $conAp)|] fvars
                    let matchPat = Match pat (NormalB bodyMatch) []
                    bodyIC' <- case fvars of
                              [] -> [|inject $conAp|]
-                             _ -> [| thunk |] `appE` P.foldr conBind [|return (inject $conAp)|] fvars
+                             _ -> [| thunk |] `appE` foldr conBind [|return (inject $conAp)|] fvars
                    let ic' = Clause [pat] (NormalB bodyIC') []
                    return (sc', matchPat, ic')

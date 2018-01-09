@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances,
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances,
   FlexibleContexts, UndecidableInstances, TypeOperators, ScopedTypeVariables,
   TypeSynonymInstances #-}
 

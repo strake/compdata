@@ -35,31 +35,11 @@ showCon con args = "(" ++ con ++ " " ++ unwords args ++ ")"
 {-| Derive an instance of 'ShowF' for a type constructor of any first-order kind
   taking at least one argument. -}
 makeShowF :: Name -> Q [Dec]
-makeShowF fname = do
-  Just (DataInfo _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
-  let fArg = VarT . tyVarBndrName $ last args
-      argNames = map (VarT . tyVarBndrName) (init args)
-      complType = foldl AppT (ConT name) argNames
-      preCond = map (mkClassP ''Show . (: [])) argNames
-      classType = AppT (ConT ''ShowF) complType
-  constrs' <- mapM normalConExp constrs
-  showFDecl <- funD 'showF (showFClauses fArg constrs')
-  return [mkInstanceD preCond classType [showFDecl]]
-      where showFClauses fArg = map (genShowFClause fArg)
-            filterFarg fArg ty x = (fArg == ty, varE x)
-            mkShow :: (Bool, ExpQ) -> ExpQ
-            mkShow (isFArg, var)
-                | isFArg = var
-                | otherwise = [| show $var |]
-            genShowFClause fArg (constr, args, gadtTy) = do
-              let n = length args
-              varNs <- newNames n "x"
-              let pat = ConP constr $ map VarP varNs
-                  allVars = zipWith (filterFarg (getUnaryFArg fArg gadtTy)) args varNs
-                  shows = listE $ map mkShow allVars
-                  conName = nameBase constr
-              body <- [|showCon conName $shows|]
-              return $ Clause [pat] (NormalB body) []
+makeShowF = make ''ShowF 'showF mk [|showCon|]
+  where mk :: (Bool, ExpQ) -> ExpQ
+        mk (isFArg, var)
+            | isFArg = var
+            | otherwise = [| show $var |]
 
 {-| Constructor printing. -}
 class ShowConstr f where
@@ -71,28 +51,31 @@ showCon' con args = unwords $ con : filter (not.null) args
 {-| Derive an instance of 'showConstr' for a type constructor of any first-order kind
   taking at least one argument. -}
 makeShowConstr :: Name -> Q [Dec]
-makeShowConstr fname = do
+makeShowConstr = make ''ShowConstr 'showConstr mk [|showCon'|]
+  where mk :: (Bool, ExpQ) -> ExpQ
+        mk (isFArg, var)
+            | isFArg = [| "" |]
+            | otherwise = [| show $var |]
+
+make :: Name -> Name -> ((Bool, ExpQ) -> ExpQ) -> Q Exp -> Name -> Q [Dec]
+make className methodName mk con fname = do
   Just (DataInfo _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let fArg = VarT . tyVarBndrName $ last args
       argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
       preCond = map (mkClassP ''Show . (: [])) argNames
-      classType = AppT (ConT ''ShowConstr) complType
+      classType = AppT (ConT className) complType
   constrs' <- mapM normalConExp constrs
-  showConstrDecl <- funD 'showConstr (showConstrClauses fArg constrs')
-  return [mkInstanceD preCond classType [showConstrDecl]]
-      where showConstrClauses fArg = map (genShowConstrClause fArg)
+  decl <- funD methodName (clauses fArg constrs')
+  return [mkInstanceD preCond classType [decl]]
+      where clauses fArg = map (genClause fArg)
             filterFarg fArg ty x = (fArg == ty, varE x)
-            mkShow :: (Bool, ExpQ) -> ExpQ
-            mkShow (isFArg, var)
-                | isFArg = [| "" |]
-                | otherwise = [| show $var |]
-            genShowConstrClause fArg (constr, args, gadtTy) = do
+            genClause fArg (constr, args, gadtTy) = do
               let n = length args
               varNs <- newNames n "x"
               let pat = ConP constr $ map VarP varNs
                   allVars = zipWith (filterFarg (getUnaryFArg fArg gadtTy)) args varNs
-                  shows = listE $ map mkShow allVars
+                  shows = listE $ map mk allVars
                   conName = nameBase constr
-              body <- [|showCon' conName $shows|]
+              body <- [|$con conName $shows|]
               return $ Clause [pat] (NormalB body) []

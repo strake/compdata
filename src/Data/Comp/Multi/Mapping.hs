@@ -85,8 +85,8 @@ instance Mapping (NumMap k) (Numbered k) where
     Numbered k _ |-> v = NumMap $ IntMap.singleton k v
     empty = NumMap IntMap.empty
 
-    findWithDefault d (Numbered i _) m = lookupNumMap d i m
+    findWithDefault d (Numbered i _) = lookupNumMap d i
 
-    prodMap p q (NumMap mp) (NumMap mq) = NumMap $ IntMap.mergeWithKey merge 
+    prodMap p q (NumMap mp) (NumMap mq) = NumMap $ IntMap.mergeWithKey merge
                                           (IntMap.map (,q)) (IntMap.map (p,)) mp mq
       where merge _ p q = Just (p,q)

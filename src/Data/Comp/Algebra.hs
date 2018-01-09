@@ -269,7 +269,7 @@ appSigFun f = run
 appSigFun' :: (Functor g) => SigFun f g -> CxtFun f g
 {-# NOINLINE [1] appSigFun' #-}
 appSigFun' f = run
-    where run (Term t) = Term $ fmap run  $ f t
+    where run (Term t) = Term $ run <$> f t
           run (Hole x) = Hole x
 
 
@@ -325,12 +325,12 @@ sigFunM f = return . f
 
 {-| Lift the give monadic signature function to a monadic term homomorphism. -}
 hom' :: (Functor f, Functor g, Monad m) => SigFunM m f g -> HomM m f g
-hom' f = liftM  (Term . fmap Hole) . f
+hom' f = fmap  (Term . fmap Hole) . f
 
 
 {-| Lift the given signature function to a monadic term homomorphism. -}
 homM :: (Functor g, Monad m) => SigFunM m f g -> HomM m f g
-homM f = liftM simpCxt . f
+homM f = fmap simpCxt . f
 
 
 {-| Apply a monadic term homomorphism recursively to a term/context. -}
@@ -340,7 +340,7 @@ appHomM :: forall f g m . (Traversable f, Functor g, Monad m)
 appHomM f = run
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole x) = return (Hole x)
-          run (Term t) = liftM appCxt . f =<< mapM run t
+          run (Term t) = fmap appCxt . f =<< mapM run t
 
 -- | Apply a monadic term homomorphism recursively to a
 -- term/context. This a top-down variant of 'appHomM'.
@@ -350,7 +350,7 @@ appHomM' :: forall f g m . (Traversable g, Monad m)
 appHomM' f = run
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole x) = return (Hole x)
-          run (Term t) = liftM appCxt . mapM run =<< f t
+          run (Term t) = fmap appCxt . mapM run =<< f t
 
 {-| This function constructs the unique monadic homomorphism from the
 initial term algebra to the given term algebra. -}
@@ -359,14 +359,14 @@ homMD :: forall f g m . (Traversable f, Functor g, Monad m)
 homMD f = run
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole x) = return (Hole x)
-          run (Term t) = liftM appCxt (f (fmap run t))
+          run (Term t) = fmap appCxt (f (fmap run t))
 
 
 {-| This function applies a monadic signature function to the given context. -}
 appSigFunM :: (Traversable f, Monad m) => SigFunM m f g -> CxtFunM m f g
 {-# NOINLINE [1] appSigFunM #-}
 appSigFunM f = run
-    where run (Term t) = liftM Term . f =<< mapM run t
+    where run (Term t) = fmap Term . f =<< mapM run t
           run (Hole x) = return (Hole x)
 -- implementation via term homomorphisms
 -- appSigFunM f = appHomM $ hom' f
@@ -378,7 +378,7 @@ appSigFunM f = run
 appSigFunM' :: (Traversable g, Monad m) => SigFunM m f g -> CxtFunM m f g
 {-# NOINLINE [1] appSigFunM' #-}
 appSigFunM' f = run
-    where run (Term t) = liftM Term . mapM run =<< f t
+    where run (Term t) = fmap Term . mapM run =<< f t
           run (Hole x) = return (Hole x)
 
 {-| This function applies a signature function to the given context. -}
@@ -387,7 +387,7 @@ appSigFunMD :: forall f g m . (Traversable f, Functor g, Monad m)
 appSigFunMD f = run
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole x) = return (Hole x)
-          run (Term t) = liftM Term (f (fmap run t))
+          run (Term t) = fmap Term (f (fmap run t))
 
 {-| Compose two monadic term homomorphisms. -}
 compHomM :: (Traversable g, Functor h, Monad m)
@@ -402,7 +402,7 @@ compHomM' f g = appHomM' f <=< g
 {-| Compose two monadic term homomorphisms. -}
 compHomM_ :: (Functor h, Functor g, Monad m)
                 => Hom g h -> HomM m f g -> HomM m f h
-compHomM_ f g = liftM (appHom f) . g
+compHomM_ f g = fmap (appHom f) . g
 
 {-| Compose a monadic algebra with a monadic term homomorphism to get a new
   monadic algebra. -}
@@ -473,7 +473,7 @@ anaM :: forall a m f. (Traversable f, Monad m)
           => CoalgM m f a -> a -> m (Term f)
 anaM f = run
     where run :: a -> m (Term f)
-          run t = liftM Term $ f t >>= mapM run
+          run t = fmap Term $ f t >>= mapM run
 
 
 --------------------------------
@@ -495,7 +495,7 @@ type RAlgM m f a = f (Term f, a) -> m a
 {-| Construct a monadic paramorphism from the given monadic r-algebra. -}
 paraM :: (Traversable f, Monad m) =>
          RAlgM m f a -> Term f -> m a
-paraM f = liftM snd . cataM run
+paraM f = fmap snd . cataM run
     where run t = do
             a <- f t
             return (Term $ fmap fst t, a)
@@ -527,10 +527,7 @@ type RCoalgM m f a = a -> m (f (Either (Term f) a))
 apoM :: (Traversable f, Monad m) =>
         RCoalgM m f a -> a -> m (Term f)
 apoM f = run
-    where run a = do
-            t <- f a
-            t' <- mapM run' t
-            return $ Term t'
+    where run = fmap Term . (f >=> mapM run')
           run' (Left t) = return t
           run' (Right a) = run a
 
@@ -565,7 +562,7 @@ type CVAlgM m f a f' = f (Term f') -> m a
 {-| Construct a monadic histomorphism from the given monadic cv-algebra. -}
 histoM :: (Traversable f, Monad m, DistAnn f a f') =>
           CVAlgM m f a f' -> Term f -> m a
-histoM alg  = liftM (snd . projectTip) . cataM run
+histoM alg  = fmap (snd . projectTip) . cataM run
     where run v = do r <- alg v
                      return $ Term $ injectA r v
 
@@ -654,7 +651,7 @@ appHomHomM f g = run where
     run (Term t) = run' =<< g t
     run (Hole h) = return $ Hole h
     run' :: Context g (Cxt h' f b) -> m (Cxt h' h b)
-    run' (Term t) = liftM appCxt $ f =<< mapM run' t
+    run' (Term t) = fmap appCxt $ f =<< mapM run' t
     run' (Hole h) = run h
 
 
@@ -665,7 +662,7 @@ appSigFunHomM f g = run where
     run (Term t) = run' =<< g t
     run (Hole h) = return $ Hole h
     run' :: Context g (Cxt h' f b) -> m (Cxt h' h b)
-    run' (Term t) = liftM Term $ f =<< mapM run' t
+    run' (Term t) = fmap Term $ f =<< mapM run' t
     run' (Hole h) = run h
 
 
@@ -926,7 +923,7 @@ appSigFunHomM f g = run where
 
 
   "appHom/appHomM" forall (a :: Hom g h) (h :: HomM m f g) x.
-     appHomM h x >>= (return . appHom a) = appHomM (compHomM_ a h) x; #-}
+     fmap (appHom a) (appHomM h x) = appHomM (compHomM_ a h) x; #-}
 
 {-# RULES
   "cata/build"  forall alg (g :: forall a . Alg f a -> a) .

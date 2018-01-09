@@ -23,14 +23,13 @@ import Data.Comp.Equality ()
 
 -- Signature for values and operators
 data Value a = Const Int | Pair a a
-  deriving Functor
+  deriving (Functor, Foldable, Traversable)
 data Op a    = Add a a | Mult a a | Fst a | Snd a
-  deriving Functor
+  deriving (Functor, Foldable, Traversable)
 
 -- Signature for the simple expression language
 type Sig = Op :+: Value
 
 -- Derive boilerplate code using Template Haskell
-$(derive [makeTraversable, makeFoldable,
-          makeEqF, makeShowF, smartConstructors, smartAConstructors]
+$(derive [makeEqF, makeShowF, smartConstructors, smartAConstructors]
          [''Value, ''Op])

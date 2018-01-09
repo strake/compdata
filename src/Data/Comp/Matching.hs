@@ -41,10 +41,8 @@ are equal. -}
 matchCxt' :: (Ord v, EqF f, Functor f, Foldable f)
        => Context f v -> Cxt h f a -> Maybe (Map v [Cxt h f a])
 matchCxt' (Hole v) t = Just $  Map.singleton v [t]
-matchCxt' (Term s) (Term t) = do
-  eqs <- eqMod s t
-  substs <- mapM (uncurry matchCxt') eqs
-  return $ Map.unionsWith (++) substs
+matchCxt' (Term s) (Term t) =
+  Map.unionsWith (++) <$> (eqMod s t >>= mapM (uncurry matchCxt'))
 matchCxt' Term {} Hole {} = Nothing
 
 

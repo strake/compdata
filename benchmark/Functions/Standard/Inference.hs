@@ -5,7 +5,7 @@ import Control.Monad
 import Functions.Standard.Desugar
 
 checkOp :: (Monad m) => [VType] -> VType -> [OExpr] -> m VType
-checkOp tys rety args = do 
+checkOp tys rety args = do
   argsty <- mapM inferType args
   if tys == argsty
      then return rety
@@ -14,7 +14,7 @@ checkOp tys rety args = do
 inferType :: (Monad m) => OExpr -> m VType
 inferType (OInt _) = return VTInt
 inferType (OBool _) = return VTBool
-inferType (OPair x y) = liftM2 VTPair (inferType x) (inferType y)
+inferType (OPair x y) = liftA2 VTPair (inferType x) (inferType y)
 inferType (OPlus x y) = checkOp [VTInt,VTInt] VTInt [x,y]
 inferType (OMult x y) = checkOp [VTInt,VTInt] VTInt [x,y]
 inferType (OIf b x y) = do [bty,xty,yty] <- mapM inferType [b,x,y]
@@ -28,17 +28,15 @@ inferType (OEq x y) = do [xty,yty] <- mapM inferType [x,y]
                             else fail ""
 inferType (OAnd x y) = checkOp [VTBool,VTBool] VTBool [x,y]
 inferType (ONot x) = checkOp [VTBool] VTBool [x]
-inferType (OProj p x) = do xty <- inferType x
-                           case xty of
-                             VTPair s t -> return $
-                                 case p of 
-                                   SProjLeft -> s
-                                   SProjRight -> t
-                             _ -> fail ""
+inferType (OProj p x) = inferType x >>= \ case
+                            VTPair s t -> pure $ case p of
+                                SProjLeft -> s
+                                SProjRight -> t
+                            _ -> fail ""
 
 
 checkOpP :: [VType] -> VType -> [PExpr] -> Err VType
-checkOpP tys rety args = do 
+checkOpP tys rety args = do
   argsty <- mapM typeSugar args
   if tys == argsty
      then return rety
@@ -48,7 +46,7 @@ checkOpP tys rety args = do
 typeSugar :: PExpr -> Err VType
 typeSugar (PInt _) = return VTInt
 typeSugar (PBool _) = return VTBool
-typeSugar (PPair x y) = liftM2 VTPair (typeSugar x) (typeSugar y)
+typeSugar (PPair x y) = liftA2 VTPair (typeSugar x) (typeSugar y)
 typeSugar (PPlus x y) = checkOpP [VTInt,VTInt] VTInt [x,y]
 typeSugar (PMult x y) = checkOpP [VTInt,VTInt] VTInt [x,y]
 typeSugar (PIf b x y) = do [bty,xty,yty] <- mapM typeSugar [b,x,y]
@@ -62,13 +60,11 @@ typeSugar (PEq x y) = do [xty,yty] <- mapM typeSugar [x,y]
                             else fail ""
 typeSugar (PAnd x y) = checkOpP [VTBool,VTBool] VTBool [x,y]
 typeSugar (PNot x) = checkOpP [VTBool] VTBool [x]
-typeSugar (PProj p x) = do xty <- typeSugar x
-                           case xty of
-                             VTPair s t -> return $
-                                 case p of 
-                                   SProjLeft -> s
-                                   SProjRight -> t
-                             _ -> fail ""
+typeSugar (PProj p x) = typeSugar x >>= \ case
+                            VTPair s t -> pure $ case p of
+                                SProjLeft -> s
+                                SProjRight -> t
+                            _ -> fail ""
 typeSugar (PNeg x) = checkOpP [VTInt] VTInt [x]
 typeSugar (PMinus x y) = checkOpP [VTInt,VTInt] VTInt [x,y]
 typeSugar (PGt x y) = checkOpP [VTInt,VTInt] VTBool [x,y]
@@ -81,7 +77,7 @@ desugType = inferType . desug
 -- non-monadic
 
 checkOp2 :: [VType] -> VType -> [OExpr] -> VType
-checkOp2 tys rety args = 
+checkOp2 tys rety args =
   if tys == map inferType2 args
      then rety
      else error ""
@@ -105,15 +101,15 @@ inferType2 (OAnd x y) = checkOp2 [VTBool,VTBool] VTBool [x,y]
 inferType2 (ONot x) = checkOp2 [VTBool] VTBool [x]
 inferType2 (OProj p x) = let xty = inferType2 x
                         in case xty of
-                             VTPair s t -> 
-                                 case p of 
+                             VTPair s t ->
+                                 case p of
                                    SProjLeft -> s
                                    SProjRight -> t
                              _ -> error ""
 
 
 checkOpP2 :: [VType] -> VType -> [PExpr] -> VType
-checkOpP2 tys rety args = 
+checkOpP2 tys rety args =
   if tys == map typeSugar2 args
      then rety
      else error ""
@@ -138,8 +134,8 @@ typeSugar2 (PAnd x y) = checkOpP2 [VTBool,VTBool] VTBool [x,y]
 typeSugar2 (PNot x) = checkOpP2 [VTBool] VTBool [x]
 typeSugar2 (PProj p x) = let xty = typeSugar2 x
                         in case xty of
-                             VTPair s t -> 
-                                 case p of 
+                             VTPair s t ->
+                                 case p of
                                    SProjLeft -> s
                                    SProjRight -> t
                              _ -> error ""

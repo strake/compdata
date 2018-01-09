@@ -1,4 +1,3 @@
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -35,8 +34,7 @@ import qualified Data.IntMap as IntMap
 import Data.Traversable
 import Data.Foldable
 
-import Control.Monad.State hiding (mapM)
-import Prelude hiding (mapM)
+import Control.Monad.State
 
 
 -- | This type is used for numbering components of a functorial value.
@@ -95,8 +93,8 @@ instance Mapping (NumMap k) (Numbered k) where
     Numbered k _ |-> v = NumMap $ IntMap.singleton k v
     empty = NumMap IntMap.empty
 
-    findWithDefault d (Numbered i _) m = lookupNumMap d i m
+    findWithDefault d (Numbered i _) = lookupNumMap d i
 
-    prodMapWith f p q (NumMap mp) (NumMap mq) = NumMap $ IntMap.mergeWithKey merge 
+    prodMapWith f p q (NumMap mp) (NumMap mq) = NumMap $ IntMap.mergeWithKey merge
                                           (IntMap.map (`f` q)) (IntMap.map (p `f`)) mp mq
       where merge _ p q = Just (p `f` q)

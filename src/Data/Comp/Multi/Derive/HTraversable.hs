@@ -19,15 +19,14 @@ module Data.Comp.Multi.Derive.HTraversable
     ) where
 
 import Control.Applicative
-import Control.Monad hiding (mapM, sequence)
+import Control.Monad
 import Data.Comp.Derive.Utils
 import Data.Comp.Multi.HTraversable
-import Data.Foldable hiding (any, or)
+import Data.Foldable hiding (any)
 import Data.Maybe
 import Data.Traversable
 import Language.Haskell.TH
-import Prelude hiding (foldl, foldr, mapM, sequence)
-import qualified Prelude as P (foldl, foldr, mapM)
+import Prelude
 
 iter 0 _ e = e
 iter n f e = iter (n-1) f (f `appE` e)
@@ -43,11 +42,11 @@ makeHTraversable fname = do
       argNames = map (VarT . tyVarBndrName) (init args')
       complType = foldl AppT (ConT name) argNames
       classType = AppT (ConT ''HTraversable) complType
-  constrs' <- P.mapM (mkPatAndVars . isFarg fArg <=< normalConExp) constrs
+  constrs' <- mapM (mkPatAndVars . isFarg fArg <=< normalConExp) constrs
   traverseDecl <- funD 'htraverse (map traverseClause constrs')
   mapMDecl <- funD 'hmapM (map mapMClause constrs')
   return [mkInstanceD [] classType [traverseDecl, mapMDecl]]
-      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` (getBinaryFArg fArg gadtTy)) args)
+      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` getBinaryFArg fArg gadtTy) args)
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"
@@ -64,7 +63,7 @@ makeHTraversable fname = do
                    let f = varE fn
                        fp = if hasFargs then VarP fn else WildP
                        vars = vars' (\d x -> iter d [|traverse|] f `appE` x) (\x -> [|pure $x|])
-                   body <- P.foldl (\ x y -> [|$x <*> $y|]) [|pure $con|] vars
+                   body <- foldl (\ x y -> [|$x <*> $y|]) [|pure $con|] vars
                    return $ Clause [fp, pat] (NormalB body) []
             -- Note: the monadic versions are not defined
             -- applicatively, as this results in a considerable
@@ -73,7 +72,7 @@ makeHTraversable fname = do
                 do fn <- newName "f"
                    let f = varE fn
                        fp = if hasFargs then VarP fn else WildP
-                       conAp = P.foldl appE con allVars
+                       conAp = foldl appE con allVars
                        conBind (d,x) y = [| $(iter d [|mapM|] f) $(varE x)  >>= $(lamE [varP x] y)|]
-                   body <- P.foldr conBind [|return $conAp|] fvars
+                   body <- foldr conBind [|return $conAp|] fvars
                    return $ Clause [fp, pat] (NormalB body) []

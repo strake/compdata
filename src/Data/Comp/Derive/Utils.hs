@@ -38,7 +38,7 @@ data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] [DerivClause]
   This is the @Q@-lifted version of 'abstractNewtype.
 -}
 abstractNewtypeQ :: Q Info -> Q (Maybe DataInfo)
-abstractNewtypeQ = liftM abstractNewtype
+abstractNewtypeQ = fmap abstractNewtype
 
 {-|
   This function abstracts away @newtype@ declaration, it turns them into
@@ -73,7 +73,7 @@ normalCon (GadtC (constr:constrs) args typ) = (constr,args,Just typ)
 normalCon' :: Con -> (Name,[Type], Maybe Type)
 normalCon' con = (n, map snd ts, t)
   where (n, ts, t) = normalCon con
-      
+
 
 -- -- | Same as normalCon' but expands type synonyms.
 -- normalConExp :: Con -> Q (Name,[Type])
@@ -172,7 +172,7 @@ tupleTypes n m = map tupleTypeName [n..m]
  > $(derive [makeFunctor, makeShowF] [''Exp])
  -}
 derive :: [Name -> Q [Dec]] -> [Name] -> Q [Dec]
-derive ders names = liftM concat $ sequence [der name | der <- ders, name <- names]
+derive ders names = concat <$> sequence (ders <*> names)
 
 {-| Apply a class name to type arguments to construct a type class
     constraint.
@@ -183,7 +183,7 @@ mkClassP :: Name -> [Type] -> Pred
 mkClassP = ClassP
 #else
 mkClassP :: Name -> [Type] -> Type
-mkClassP name = foldl AppT (ConT name)
+mkClassP = foldl AppT . ConT
 #endif
 
 {-| This function checks whether the given type constraint is an
@@ -202,9 +202,9 @@ isEqualP _ = Nothing
 
 mkInstanceD :: Cxt -> Type -> [Dec] -> Dec
 #if __GLASGOW_HASKELL__ < 800
-mkInstanceD cxt ty decs = InstanceD cxt ty decs
+mkInstanceD = InstanceD
 #else
-mkInstanceD cxt ty decs = InstanceD Nothing cxt ty decs
+mkInstanceD = InstanceD Nothing
 #endif
 
 
@@ -229,10 +229,8 @@ liftSumGen :: Name -> Name -> Name -> Q [Dec]
 liftSumGen caseName sumName fname = do
   ClassI (ClassD _ name targs_ _ decs) _ <- reify fname
   let targs = map tyVarBndrName targs_
-  splitM <- findSig targs decs
-  case splitM of
-    Nothing -> do reportError $ "Class " ++ show name ++ " cannot be lifted to sums!"
-                  return []
+  findSig targs decs >>= \ case
+    Nothing -> [] <$ reportError ("Class " ++ show name ++ " cannot be lifted to sums!")
     Just (ts1_, ts2_) -> do
       let f = VarT $ mkName "f"
       let g = VarT $ mkName "g"
@@ -240,7 +238,7 @@ liftSumGen caseName sumName fname = do
       let ts2 = map VarT ts2_
       let cxt = [mkClassP name (ts1 ++ f : ts2),
                  mkClassP name (ts1 ++ g : ts2)]
-      let tp = ((ConT sumName `AppT` f) `AppT` g)
+      let tp = (ConT sumName `AppT` f) `AppT` g
       let complType = foldl AppT (foldl AppT (ConT name) ts1 `AppT` tp) ts2
       decs' <- sequence $ concatMap decl decs
       return [mkInstanceD cxt complType decs']
@@ -256,14 +254,9 @@ liftSumGen caseName sumName fname = do
 findSig :: [Name] -> [Dec] -> Q (Maybe ([Name],[Name]))
 findSig targs decs = case map run decs of
                        []  -> return Nothing
-                       mx:_ -> do x <- mx
-                                  case x of
-                                    Nothing -> return Nothing
-                                    Just n -> return $ splitNames n targs
+                       mx:_ -> (>>= flip splitNames targs) <$> mx
   where run :: Dec -> Q (Maybe Name)
-        run (SigD _ ty) = do
-          ty' <- expandSyns ty
-          return $ getSig False ty'
+        run (SigD _ ty) = getSig False <$> expandSyns ty
         run _ = return Nothing
         getSig t (ForallT _ _ ty) = getSig t ty
         getSig False (AppT (AppT ArrowT ty) _) = getSig True ty
@@ -272,6 +265,5 @@ findSig targs decs = case map run decs of
         getSig _ _ = Nothing
         splitNames y (x:xs)
           | y == x = Just ([],xs)
-          | otherwise = do (xs1,xs2) <- splitNames y xs
-                           return (x:xs1,xs2)
+          | otherwise = (\ (xs1,xs2) -> (x:xs1,xs2)) <$>splitNames y xs
         splitNames _ [] = Nothing

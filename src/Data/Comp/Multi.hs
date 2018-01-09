@@ -107,7 +107,7 @@ The following language extensions are needed in order to run the example:
 > import Data.Comp.Multi
 > import Data.Comp.Multi.Show ()
 > import Data.Comp.Multi.Derive
-> import Control.Monad (liftM)
+> import Control.Monad (fmap)
 >
 > -- Signature for values and operators
 > data Value e l where
@@ -147,8 +147,8 @@ The following language extensions are needed in order to run the example:
 >   evalAlgM (Mult x y) = do n1 <- projC x
 >                            n2 <- projC y
 >                            return $ iConst $ n1 * n2
->   evalAlgM (Fst v)    = liftM fst $ projP v
->   evalAlgM (Snd v)    = liftM snd $ projP v
+>   evalAlgM (Fst v)    = fmap fst $ projP v
+>   evalAlgM (Snd v)    = fmap snd $ projP v
 >
 > projC :: (Value :<: v) => Term v Int -> Maybe Int
 > projC v = case project v of

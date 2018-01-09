@@ -32,13 +32,12 @@ module Data.Comp.Term
      ) where
 
 import Control.Applicative hiding (Const)
-import Control.Monad hiding (mapM, sequence)
-
+import Control.Monad
 import Data.Foldable
 import Data.Traversable
 import Unsafe.Coerce
 
-import Prelude hiding (foldl, foldl1, foldr, foldr1, mapM, sequence)
+import Prelude hiding (foldl, foldr)
 
 
 {-|  -}
@@ -83,7 +82,7 @@ simpCxt = Term . fmap Hole
 toCxt :: Functor f => Term f -> Cxt h f a
 {-# INLINE toCxt #-}
 toCxt = unsafeCoerce
--- equivalent to @Term . (fmap toCxt) . unTerm@
+-- equivalent to @Term . fmap toCxt . unTerm@
 
 {-| A term is a context with no holes.  -}
 type Term f = Cxt NoHole f ()
@@ -103,7 +102,6 @@ instance Functor f => Applicative (Context f) where
     (<*>) = ap
 
 instance (Functor f) => Monad (Context f) where
-    return = Hole
     m >>= f = run m
         where run (Hole v) = f v
               run (Term t) = Term (fmap run t)
@@ -131,13 +129,6 @@ instance (Traversable f) => Traversable (Cxt h f) where
 
     sequenceA (Hole a) = Hole <$> a
     sequenceA (Term t) = Term <$> traverse sequenceA t
-
-    mapM f = run
-        where run (Hole a) = liftM Hole $ f a
-              run (Term t) = liftM Term $ mapM run t
-
-    sequence (Hole a) = liftM Hole a
-    sequence (Term t) = liftM Term $ mapM sequence t
 
 
 

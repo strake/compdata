@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 module Data.Comp.Render where
 
-import Data.Comp
+import Data.Comp hiding (fmap)
 import Data.Comp.Derive
 import Data.Comp.Show ()
 import Data.Foldable (toList)

@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses, 
+{-# LANGUAGE TemplateHaskell, TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses,
   TypeOperators, FlexibleContexts, ConstraintKinds #-}
 {-# LANGUAGE DeriveFunctor #-}
 
@@ -30,17 +30,17 @@ data Var = X | Y | Z deriving (Eq,Ord,Show)
 data Val e = Abs Var e
            | Var Var
            | Int Int
-  deriving Functor
+  deriving (Functor, Foldable, Traversable)
 
 data Op e = App e e
           | Plus e e
-  deriving Functor
+  deriving (Functor, Foldable, Traversable)
 
 data Let e = Let Var e e
-  deriving Functor
+  deriving (Functor, Foldable, Traversable)
 
 data LetRec e = LetRec Var e e
-  deriving Functor
+  deriving (Functor, Foldable, Traversable)
 
 type Sig = Op :+: Val
 
@@ -48,14 +48,13 @@ type SigLet = Let :+: Sig
 
 type SigRec = LetRec :+: Sig
 
-$(derive [makeTraversable, makeFoldable,
-          makeEqF, makeShowF, smartConstructors]
+$(derive [makeEqF, makeShowF, smartConstructors]
          [''Op, ''Val, ''Let, ''LetRec])
 
 instance HasVars Val Var where
     isVar (Var v) = Just v
     isVar _       = Nothing
-    
+
     bindsVars (Abs v a) =  a |-> Set.singleton v
     bindsVars _         = empty
 

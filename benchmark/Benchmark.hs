@@ -16,8 +16,8 @@ import System.Random
 
 aExpr :: SugarExpr
 aExpr = iIf ((iVInt 1 `iGt` (iVInt 2 `iMinus` iVInt 1))
-            `iOr` ((iVInt 1 `iGt` (iVInt 2 `iMinus` iVInt 1))))
-       ((iVInt 2 `iMinus` iVInt 1))
+            `iOr` (iVInt 1 `iGt` (iVInt 2 `iMinus` iVInt 1)))
+       (iVInt 2 `iMinus` iVInt 1)
        (iVInt 3)
 
 sExpr :: PExpr
@@ -157,4 +157,4 @@ main = do b1 <- randStdBenchmarks 5
           b2 <- randStdBenchmarks 10
           b3 <- randStdBenchmarks 20
           let b0 = standardBenchmarks (sExpr, aExpr, "hand-written")
-          defaultMain $ [b0,b1,b2,b3]
+          defaultMain [b0,b1,b2,b3]

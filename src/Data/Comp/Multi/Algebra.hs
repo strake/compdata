@@ -88,7 +88,6 @@ module Data.Comp.Multi.Algebra (
       futuM,
     ) where
 
-
 import Control.Monad
 import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.HTraversable
@@ -126,12 +125,8 @@ appCxt = cata' Term
 -- | This function lifts a many-sorted algebra to a monadic domain.
 liftMAlg :: forall m f. (Monad m, HTraversable f) =>
             Alg f I -> Alg f m
-liftMAlg alg =  turn . liftM alg . hmapM run
-    where run :: m i -> m (I i)
-          run m = do x <- m
-                     return $ I x
-          turn x = do I y <- x
-                      return y
+liftMAlg alg = fmap ((\ (I y) -> y) . alg) . hmapM (fmap I)
+
 -- | This type represents a monadic algebra. It is similar to 'Alg'
 -- but the return type is monadic.
 type AlgM m f e = NatM m (f e) e
@@ -249,7 +244,7 @@ sigFunM f = return . f
 -- monadic term algebra.
 hom' :: (HFunctor f, HFunctor g, Monad m) =>
             SigFunM m f g -> HomM m f g
-hom' f = liftM  (Term . hfmap Hole) . f
+hom' f = fmap  (Term . hfmap Hole) . f
 
 -- | This function lifts the given signature function to a monadic
 -- term algebra.
@@ -265,7 +260,7 @@ appHomM :: forall f g m . (HTraversable f, HFunctor g, Monad m)
 appHomM f = run
     where run :: CxtFunM m f g
           run (Hole b) = return $ Hole b
-          run (Term t) = liftM appCxt . (>>= f) . hmapM run $ t
+          run (Term t) = fmap appCxt . (>>= f) . hmapM run $ t
 
 -- | This function applies the given monadic term homomorphism to the
 -- given term/context. This is a top-down variant of 'appHomM'.
@@ -275,7 +270,7 @@ appHomM' :: forall f g m . (HTraversable g, Monad m)
 appHomM' f = run
     where run :: CxtFunM m f g
           run (Hole b) = return $ Hole b
-          run (Term t) = liftM appCxt . hmapM run =<< f t
+          run (Term t) = fmap appCxt . hmapM run =<< f t
 
 -- | This function applies the given monadic signature function to the
 -- given context.
@@ -285,7 +280,7 @@ appSigFunM :: forall f g m. (HTraversable f, Monad m) =>
 appSigFunM f = run
     where run :: CxtFunM m f g
           run (Hole b) = return $ Hole b
-          run (Term t) = liftM Term . f =<< hmapM run t
+          run (Term t) = fmap Term . f =<< hmapM run t
 
 -- | This function applies the given monadic signature function to the
 -- given context. This is a top-down variant of 'appSigFunM'.
@@ -294,7 +289,7 @@ appSigFunM' :: forall f g m. (HTraversable g, Monad m) =>
 appSigFunM' f = run
     where run :: CxtFunM m f g
           run (Hole b) = return $ Hole b
-          run (Term t) = liftM Term . hmapM run =<< f t
+          run (Term t) = fmap Term . hmapM run =<< f t
 
 -- | This function composes two monadic term algebras.
 
@@ -347,7 +342,7 @@ anaM :: forall a m f. (HTraversable f, Monad m)
           => CoalgM m f a -> NatM m a (Term f)
 anaM f = run
     where run :: NatM m a (Term f)
-          run t = liftM Term $ f t >>= hmapM run
+          run t = fmap Term $ f t >>= hmapM run
 
 --------------------------------
 -- R-Algebras & Paramorphisms --
@@ -372,7 +367,7 @@ type RAlgM m f a = NatM m (f (Term f :*: a)) a
 -- monadic r-algebra
 paraM :: forall f m a. (HTraversable f, Monad m) =>
          RAlgM m f a -> NatM m(Term f)  a
-paraM f = liftM fsnd . cataM run
+paraM f = fmap fsnd . cataM run
     where run :: AlgM m f (Term f :*: a)
           run t = do
             a <- f t
@@ -407,10 +402,7 @@ apoM :: forall f m a . (HTraversable f, Monad m) =>
         RCoalgM m f a -> NatM m a (Term f)
 apoM f = run
     where run :: NatM m a (Term f)
-          run a = do
-            t <- f a
-            t' <- hmapM run' t
-            return $ Term t'
+          run = fmap Term . (f >=> hmapM run')
           run' :: NatM m (Term f :+: a)  (Term f)
           run' (Inl t) = return t
           run' (Inr a) = run a

@@ -38,7 +38,7 @@ import Prelude hiding (foldl, mapM)
 getSubterm :: (Functor g, Foldable g) => [Int] -> Term g -> Maybe (Term g)
 getSubterm path t = cata alg t path where
     alg :: (Functor g, Foldable g) => Alg g ([Int] -> Maybe (Cxt h g a))
-    alg t [] = Just $ Term $ fmap ((fromJust) . ($[])) t
+    alg t [] = Just $ Term $ fmap (fromJust . ($[])) t
     alg t (i:is) = case drop i (toList t) of
                      [] -> Nothing
                      x : _ -> x is
@@ -79,7 +79,7 @@ transform' f = transform f' where
 transformM :: (Traversable f, Monad m) =>
              (Term f -> m (Term f)) -> Term f -> m (Term f)
 transformM  f = run
-    where run t = f =<< liftM Term (mapM run $ unTerm t)
+    where run t = f =<< fmap Term (mapM run $ unTerm t)
 
 query :: Foldable f => (Term f -> r) -> (r -> r -> r) -> Term f -> r
 query q c = run

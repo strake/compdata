@@ -54,7 +54,7 @@ data E f = forall i. E {unE :: f i}
 runE :: (f :=> b) -> E f -> b
 runE f (E x) = f x
 
-data A f = A {unA :: forall i. f i}
+newtype A f = A {unA :: forall i. f i}
 
 instance Eq a => Eq (K a i) where
     K x == K y = x == y
@@ -103,4 +103,4 @@ instance (Functor f) => HFunctor (Compose f) where hfmap f (Compose xs) = Compos
 infixl 5 :.:
 
 -- | This data type denotes the composition of two functor families.
-data (:.:) f g e t = Comp (f (g e) t)
+newtype (:.:) f g e t = Comp (f (g e) t)

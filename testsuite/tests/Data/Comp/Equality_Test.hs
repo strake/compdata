@@ -30,8 +30,7 @@ tests = testGroup "Equality" [
 -- Properties
 --------------------------------------------------------------------------------
 
-prop_eqMod_fmap cxt f = case eqMod cxt cxt' of
+prop_eqMod_fmap cxt f = case eqMod cxt (f <$> cxt) of
                    Nothing -> False
-                   Just list -> all (uncurry (==)) $ map (\(x,y)->(f x,y)) list
-    where cxt' = fmap f cxt 
-          with = (cxt :: Context SigP Int, f :: Int -> Int)
+                   Just list -> all (uncurry (==)) $ map (f *** id) list
+    where _ = (cxt :: Context SigP Int, f :: Int -> Int)

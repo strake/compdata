@@ -48,7 +48,7 @@ instance (Value :<: m :+: v) => EvalT Value m v where
 -- make pairs strict in both components
 --  evalAlgT x@Pair{} = strict x
 -- or explicitly:
---  evalAlgT (Pair x y) = thunk $ liftM2 iPair (dethunk' x) (dethunk' )y
+--  evalAlgT (Pair x y) = thunk $ liftA2 iPair (dethunk' x) (dethunk' )y
 --  evalAlgT x = inject x
 
 -- or only partially strict
@@ -63,10 +63,10 @@ instance (Value :<: m :+: v, Value :<: v) => EvalT Op m v where
                           Const n1 <- whnfPr x
                           Const n2 <- whnfPr y
                           return $ iConst $ n1 * n2
-  evalAlgT (Fst v)    = thunk $ do 
+  evalAlgT (Fst v)    = thunk $ do
                           Pair x _  <- whnfPr v
                           return x
-  evalAlgT (Snd v)    = thunk $ do 
+  evalAlgT (Snd v)    = thunk $ do
                           Pair _ y <- whnfPr v
                           return y
 

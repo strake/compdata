@@ -23,8 +23,6 @@ import Data.Comp.Derive.Utils
 import Data.Comp.Multi.HFunctor
 import Data.Maybe
 import Language.Haskell.TH
-import Prelude hiding (mapM)
-import qualified Prelude as P (mapM)
 
 iter 0 _ e = e
 iter n f e = iter (n-1) f (f `appE` e)
@@ -39,7 +37,7 @@ makeHFunctor fname = do
       argNames = map (VarT . tyVarBndrName) (init args')
       complType = foldl AppT (ConT name) argNames
       classType = AppT (ConT ''HFunctor) complType
-  constrs' <- P.mapM (mkPatAndVars . isFarg fArg <=< normalConExp) constrs
+  constrs' <- mapM (mkPatAndVars . isFarg fArg <=< normalConExp) constrs
   hfmapDecl <- funD 'hfmap (map hfmapClause constrs')
   return [mkInstanceD [] classType [hfmapDecl]]
       where isFarg fArg (constr, args, ty) = (constr, map (`containsType'` getBinaryFArg fArg ty) args)

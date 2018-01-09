@@ -65,7 +65,7 @@ transformM :: forall f m . (HTraversable f, Monad m) =>
              NatM m (Term f) (Term f) -> NatM m (Term f) (Term f)
 transformM  f = run
     where run :: NatM m (Term f) (Term f)
-          run t = f =<< liftM Term (hmapM run $ unTerm t)
+          run t = f =<< fmap Term (hmapM run $ unTerm t)
 
 query :: HFoldable f => (Term f :=>  r) -> (r -> r -> r) -> Term f :=> r
 -- query q c = run

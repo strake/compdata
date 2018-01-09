@@ -13,9 +13,11 @@ module Functions.Comp.Eval where
 
 import DataTypes.Comp
 import Functions.Comp.Desugar
+import Data.Bool
 import Data.Comp
 import Data.Comp.Thunk hiding (eval, eval2)
 import Data.Comp.Derive
+import Control.Applicative
 import Control.Monad
 
 -- evaluation with thunks
@@ -40,10 +42,10 @@ instance (Value :<: (m :+: v), Value :<: v, Traversable v, EqF v, Monad m) => Ev
                            VInt i <- whnfPr x
                            VInt j <- whnfPr y
                            return $ iVInt (i*j)
-    evalTAlg (If x y z) = thunk $ do 
+    evalTAlg (If x y z) = thunk $ do
                             VBool b <- whnfPr x
                             return $ if b then y else z
-    evalTAlg (Eq x y) = thunk $ liftM iVBool $ eqT x y
+    evalTAlg (Eq x y) = thunk $ iVBool <$> eqT x y
     evalTAlg (Lt x y) = thunk $ do
                           VInt i <- whnfPr x
                           VInt j <- whnfPr y
@@ -117,25 +119,24 @@ coercePair t = case project t of
                 _ -> fail ""
 
 instance (Value :<: v, EqF v, Monad m) => Eval Op v m where
-    evalAlg (Plus x y) = liftM2 (\ i j -> iVInt (i + j)) (coerceInt x) (coerceInt y)
-    evalAlg (Mult x y) = liftM2 (\ i j -> iVInt (i * j)) (coerceInt x) (coerceInt y)
-    evalAlg (If b x y) = liftM select (coerceBool b)
-        where select b' = if b' then x else y
+    evalAlg (Plus x y) = liftA2 (\ i j -> iVInt (i + j)) (coerceInt x) (coerceInt y)
+    evalAlg (Mult x y) = liftA2 (\ i j -> iVInt (i * j)) (coerceInt x) (coerceInt y)
+    evalAlg (If b x y) = bool y x <$> coerceBool b
     evalAlg (Eq x y) = return $ iVBool (x == y)
-    evalAlg (Lt x y) = liftM2 (\ i j -> iVBool (i < j)) (coerceInt x) (coerceInt y)
-    evalAlg (And x y) = liftM2 (\ b c -> iVBool (b && c)) (coerceBool x) (coerceBool y)
-    evalAlg (Not x) = liftM (iVBool . not) (coerceBool x)
-    evalAlg (Proj p x) = liftM select (coercePair x)
-        where select (x,y) = case p of 
+    evalAlg (Lt x y) = liftA2 (\ i j -> iVBool (i < j)) (coerceInt x) (coerceInt y)
+    evalAlg (And x y) = liftA2 (\ b c -> iVBool (b && c)) (coerceBool x) (coerceBool y)
+    evalAlg (Not x) = iVBool . not <$> coerceBool x
+    evalAlg (Proj p x) = select <$> coercePair x
+        where select (x,y) = case p of
                                ProjLeft -> x
                                ProjRight -> y
 
 instance (Value :<: v, Monad m) => Eval Sugar v m where
-    evalAlg (Neg x) = liftM (iVInt . negate) (coerceInt x)
-    evalAlg (Minus x y) = liftM2 (\ i j -> iVInt (i - j)) (coerceInt x) (coerceInt y)
-    evalAlg (Gt x y) = liftM2 (\ i j -> iVBool (i > j)) (coerceInt x) (coerceInt y)
-    evalAlg (Or x y) = liftM2 (\ b c -> iVBool (b || c)) (coerceBool x) (coerceBool y)
-    evalAlg (Impl x y) = liftM2 (\ b c -> iVBool (not b || c)) (coerceBool x) (coerceBool y)
+    evalAlg (Neg x) = iVInt . negate <$> coerceInt x
+    evalAlg (Minus x y) = liftA2 (\ i j -> iVInt (i - j)) (coerceInt x) (coerceInt y)
+    evalAlg (Gt x y) = liftA2 (\ i j -> iVBool (i > j)) (coerceInt x) (coerceInt y)
+    evalAlg (Or x y) = liftA2 (\ b c -> iVBool (b || c)) (coerceBool x) (coerceBool y)
+    evalAlg (Impl x y) = liftA2 (\ b c -> iVBool (not b || c)) (coerceBool x) (coerceBool y)
 
 
 -- direct evaluation
@@ -154,7 +155,7 @@ $(derive [liftSum] [''EvalDir])
 instance (Monad m) => EvalDir Value m where
     evalDir (VInt i) = return $ iVInt i
     evalDir (VBool i) = return $ iVBool i
-    evalDir (VPair x y) = liftM2 iVPair (evalDirect x) (evalDirect y)
+    evalDir (VPair x y) = liftA2 iVPair (evalDirect x) (evalDirect y)
 
 
 evalInt :: (Traversable e, EvalDir e m) => Term e -> m Int
@@ -179,26 +180,26 @@ evalPair t = do
     _ -> fail ""
 
 instance (Monad m) => EvalDir Op m where
-    evalDir (Plus x y) = liftM2 (\ i j -> iVInt (i + j)) (evalInt x) (evalInt y)
-    evalDir (Mult x y) = liftM2 (\ i j -> iVInt (i * j)) (evalInt x) (evalInt y)
-    evalDir (If b x y) = do 
+    evalDir (Plus x y) = liftA2 (\ i j -> iVInt (i + j)) (evalInt x) (evalInt y)
+    evalDir (Mult x y) = liftA2 (\ i j -> iVInt (i * j)) (evalInt x) (evalInt y)
+    evalDir (If b x y) = do
       b' <- evalBool b
       if b' then evalDirect x else evalDirect y
-    evalDir (Eq x y) = liftM iVBool $ liftM2 (==) (evalDirect x) (evalDirect y)
-    evalDir (Lt x y) = liftM2 (\ i j -> iVBool (i < j)) (evalInt x) (evalInt y)
-    evalDir (And x y) = liftM2 (\ b c -> iVBool (b && c)) (evalBool x) (evalBool y)
-    evalDir (Not x) = liftM (iVBool . not) (evalBool x)
-    evalDir (Proj p x) = liftM select (evalPair x)
-        where select (x,y) = case p of 
+    evalDir (Eq x y) = iVBool <$> liftA2 (==) (evalDirect x) (evalDirect y)
+    evalDir (Lt x y) = liftA2 (\ i j -> iVBool (i < j)) (evalInt x) (evalInt y)
+    evalDir (And x y) = liftA2 (\ b c -> iVBool (b && c)) (evalBool x) (evalBool y)
+    evalDir (Not x) = iVBool . not <$> evalBool x
+    evalDir (Proj p x) = select <$> evalPair x
+        where select (x,y) = case p of
                                ProjLeft -> x
                                ProjRight -> y
 
 instance (Monad m) => EvalDir Sugar m where
-    evalDir (Neg x) = liftM (iVInt . negate) (evalInt x)
-    evalDir (Minus x y) = liftM2 (\ i j -> iVInt (i - j)) (evalInt x) (evalInt y)
-    evalDir (Gt x y) = liftM2 (\ i j -> iVBool (i > j)) (evalInt x) (evalInt y)
-    evalDir (Or x y) = liftM2 (\ b c -> iVBool (b || c)) (evalBool x) (evalBool y)
-    evalDir (Impl x y) = liftM2 (\ b c -> iVBool (not b || c)) (evalBool x) (evalBool y)
+    evalDir (Neg x) = iVInt . negate <$> evalInt x
+    evalDir (Minus x y) = liftA2 (\ i j -> iVInt (i - j)) (evalInt x) (evalInt y)
+    evalDir (Gt x y) = liftA2 (\ i j -> iVBool (i > j)) (evalInt x) (evalInt y)
+    evalDir (Or x y) = liftA2 (\ b c -> iVBool (b || c)) (evalBool x) (evalBool y)
+    evalDir (Impl x y) = liftA2 (\ b c -> iVBool (not b || c)) (evalBool x) (evalBool y)
 
 
 -- evaluation2
@@ -239,7 +240,7 @@ instance (Value :<: v, EqF v) => Eval2 Op v where
     eval2Alg (And x y) = (\ b c -> iVBool (b && c)) (coerceBool2 x) (coerceBool2 y)
     eval2Alg (Not x) = (iVBool . not) (coerceBool2 x)
     eval2Alg (Proj p x) = select (coercePair2 x)
-        where select (x,y) = case p of 
+        where select (x,y) = case p of
                                ProjLeft -> x
                                ProjRight -> y
 
@@ -295,7 +296,7 @@ instance EvalDir2 Op where
     evalDir2 (And x y) = (\ b c -> iVBool (b && c)) (evalBool2 x) (evalBool2 y)
     evalDir2 (Not x) =  (iVBool . not) (evalBool2 x)
     evalDir2 (Proj p x) =  select (evalPair2 x)
-        where select (x,y) = case p of 
+        where select (x,y) = case p of
                                ProjLeft -> x
                                ProjRight -> y
 

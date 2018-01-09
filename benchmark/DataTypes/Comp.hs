@@ -10,14 +10,14 @@
   DeriveFunctor,
   ConstraintKinds #-}
 
-module DataTypes.Comp 
+module DataTypes.Comp
     ( module DataTypes.Comp,
-      module DataTypes 
+      module DataTypes
     ) where
 
 import DataTypes
 import Data.Comp.Derive
-import Data.Comp
+import Data.Comp hiding (fmap)
 import Data.Comp.Ops
 import Data.Comp.Arbitrary ()
 import Data.Comp.Show ()
@@ -25,8 +25,7 @@ import Data.Traversable
 import Test.QuickCheck.Gen
 import Test.QuickCheck.Property
 
-import Control.Monad hiding (sequence_,mapM)
-import Prelude hiding (sequence_,mapM)
+import Control.Monad
 
 -- base values
 
@@ -42,12 +41,12 @@ type BaseType = Term BaseTypeSig
 data ValueT e = TInt
               | TBool
               | TPair e e
-                deriving (Eq, Functor)
+                deriving (Eq, Functor, Foldable, Traversable)
 
 data Value e = VInt Int
              | VBool Bool
              | VPair e e
-               deriving (Eq, Functor)
+               deriving (Eq, Functor, Foldable, Traversable)
 
 data Proj = ProjLeft | ProjRight
             deriving (Eq)
@@ -60,20 +59,19 @@ data Op e = Plus e e
           | And e e
           | Not e
           | Proj Proj e
-            deriving (Eq, Functor)
+            deriving (Eq, Functor, Foldable, Traversable)
 
 data Sugar e = Neg e
              | Minus e e
              | Gt e e
              | Or e e
              | Impl e e
-               deriving (Eq, Functor)
+               deriving (Eq, Functor, Foldable, Traversable)
 
 $(derive [makeNFData, makeArbitrary] [''Proj])
 
 $(derive
-  [makeFoldable, makeTraversable,
-   makeEqF, makeNFDataF, makeArbitraryF, smartConstructors]
+  [makeEqF, makeNFDataF, makeArbitraryF, smartConstructors]
   [''Value, ''Op, ''Sugar, ''ValueT])
 
 showBinOp :: String -> String -> String -> String
@@ -96,12 +94,12 @@ instance ShowF Op where
     showF (Proj ProjLeft x) = x ++ "!0"
     showF (Proj ProjRight x) = x ++ "!1"
 
-instance ShowF ValueT where 
+instance ShowF ValueT where
     showF TInt = "Int"
     showF TBool = "Bool"
     showF (TPair x y) = "(" ++ x ++ "," ++ y ++ ")"
 
-instance ShowF Sugar where 
+instance ShowF Sugar where
     showF (Neg x) = "- " ++ x
     showF (Minus x y) = "(" ++ x ++ "-" ++ y ++ ")"
     showF (Gt x y) = "(" ++ x ++ ">" ++ y ++ ")"
@@ -110,15 +108,14 @@ instance ShowF Sugar where
 
 class GenTyped f where
     genTypedAlg :: CoalgM Gen f BaseType
-    genTypedAlg a = do dist <- genTypedAlg' a
-                       frequency $ map (\ (i,f) -> (i,return f)) dist
+    genTypedAlg = genTypedAlg' >=> frequency . map (id *** return)
     genTypedAlg' :: BaseType -> Gen [(Int,f BaseType)]
-    genTypedAlg' a = genTypedAlg a >>= \ g -> return [(1,g)]
+    genTypedAlg' = fmap (\ g -> [(1,g)]) . genTypedAlg
 
 genTyped :: forall f . (Traversable f, GenTyped f) => BaseType -> Gen (Term f)
-genTyped = run 
+genTyped = run
     where run :: BaseType -> Gen (Term f)
-          run t = liftM Term $ genTypedAlg t >>= mapM (desize . run)
+          run t = Term <$> (genTypedAlg t >>= mapM (desize . run))
 
 desize :: Gen a -> Gen a
 desize gen = sized (\n -> resize (max 0 (n-1)) gen)
@@ -128,11 +125,11 @@ genSomeTyped = arbitrary >>= genTyped
 
 forAllTyped :: (GenTyped f, ShowF f, Testable prop, Traversable f) =>
                (Term f -> prop) -> Property
-forAllTyped f = forAll genSomeTyped f
+forAllTyped = forAll genSomeTyped
 
 
 instance (GenTyped f, GenTyped g) => GenTyped (f :+: g) where
-    genTypedAlg' t = do 
+    genTypedAlg' t = do
       left <- genTypedAlg' t
       right <- genTypedAlg' t
       let left' = map inl left

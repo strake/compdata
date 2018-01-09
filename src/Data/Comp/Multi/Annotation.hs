@@ -26,14 +26,15 @@ module Data.Comp.Multi.Annotation
      (:&:) (..),
      DistAnn (..),
      RemA (..),
-     liftA,
+     fmap,
      ann,
-     liftA',
+     fmap',
      stripA,
      propAnn,
      project'
     ) where
 
+import Prelude hiding (fmap)
 import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.Ops
@@ -43,8 +44,8 @@ import qualified Data.Comp.Ops as O
 -- | This function transforms a function with a domain constructed
 -- from a functor to a function with a domain constructed with the
 -- same functor but with an additional annotation.
-liftA :: (RemA s s') => (s' a :-> t) -> s a :-> t
-liftA f v = f (remA v)
+fmap :: (RemA s s') => (s' a :-> t) -> s a :-> t
+fmap f v = f (remA v)
 
 
 -- | This function annotates each sub term of the given term with the
@@ -56,9 +57,9 @@ ann c = appSigFun (injectA c)
 -- | This function transforms a function with a domain constructed
 -- from a functor to a function with a domain constructed with the
 -- same functor but with an additional annotation.
-liftA' :: (DistAnn s' p s, HFunctor s')
+fmap' :: (DistAnn s' p s, HFunctor s')
        => (s' a :-> Cxt h s' a) -> s a :-> Cxt h s a
-liftA' f v = let (v' O.:&: p) = projectA v
+fmap' f v = let (v' O.:&: p) = projectA v
              in ann p (f v')
 
 {-| This function strips the annotations from a term over a

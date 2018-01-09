@@ -110,8 +110,8 @@ instance (HTraversable f) => HTraversable (Cxt h f) where
        hmapM' :: forall m a b. (Monad m) => NatM m a b -> NatM m (Cxt h f a) (Cxt h f b)
        hmapM' f = run where
              run :: NatM m (Cxt h f a) (Cxt h f b)
-             run (Hole x) = liftM Hole $ f x
-             run (Term t) = liftM Term $ hmapM run t
+             run (Hole x) = Hole <$> f x
+             run (Term t) = Term <$> hmapM run t
    htraverse f (Hole x) = Hole <$> f x
    htraverse f (Term t) = Term <$> htraverse (htraverse f) t
 

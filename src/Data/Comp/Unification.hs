@@ -78,16 +78,13 @@ type UnifyM f v m a = StateT (UnifyState f v) m a
 -- list of equations.
 runUnifyM :: MonadError (UnifError f v) m
           => UnifyM f v m a -> Equations f -> m (Subst f v)
-runUnifyM m eqs = liftM (usSubst . snd) $
-                           runStateT m UnifyState { usEqs = eqs, usSubst = Map.empty}
+runUnifyM m eqs = usSubst . snd <$> runStateT m UnifyState {usEqs = eqs, usSubst = Map.empty}
 
 withNextEq :: Monad m
            => (Equation f -> UnifyM f v m ()) -> UnifyM f v m ()
-withNextEq m = do eqs <- gets usEqs
-                  case eqs of
-                    [] -> return ()
-                    x : xs -> modify (\s -> s {usEqs = xs})
-                           >> m x
+withNextEq m = gets usEqs >>= \ case
+    [] -> return ()
+    x : xs -> modify (\s -> s {usEqs = xs}) *> m x
 
 putEqs :: Monad m
        => Equations f -> UnifyM f v m ()

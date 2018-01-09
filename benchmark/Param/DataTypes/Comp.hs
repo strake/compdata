@@ -2,7 +2,7 @@
   FlexibleContexts, UndecidableInstances, TypeOperators, ScopedTypeVariables,
   TypeSynonymInstances #-}
 
-module Param.DataTypes.Comp 
+module Param.DataTypes.Comp
     (
      module Param.DataTypes.Comp
     ) where
@@ -16,9 +16,6 @@ import Data.Comp.Param
 import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
 --import Test.QuickCheck.Property
-
---import Control.Monad hiding (sequence_,mapM)
-import Prelude hiding (sequence_,mapM)
 
 -- base values
 
@@ -91,12 +88,12 @@ instance ShowF Op where
     showF (Proj ProjLeft x) = x ++ "!0"
     showF (Proj ProjRight x) = x ++ "!1"
 
-instance ShowF ValueT where 
+instance ShowF ValueT where
     showF TInt = "Int"
     showF TBool = "Bool"
     showF (TPair x y) = "(" ++ x ++ "," ++ y ++ ")"
 
-instance ShowF Sugar where 
+instance ShowF Sugar where
     showF (Neg x) = "- " ++ x
     showF (Minus x y) = "(" ++ x ++ "-" ++ y ++ ")"
     showF (Gt x y) = "(" ++ x ++ ">" ++ y ++ ")"
@@ -105,15 +102,14 @@ instance ShowF Sugar where
 
 class GenTyped f where
     genTypedAlg :: CoalgM Gen f BaseType
-    genTypedAlg a = do dist <- genTypedAlg' a
-                       frequency $ map (\(i,f) -> (i,return f)) dist
+    genTypedAlg = genTypedAlg' >=> frequency . map (id *** return)
     genTypedAlg' :: BaseType -> Gen [(Int,f BaseType BaseType)]
-    genTypedAlg' a = genTypedAlg a >>= \ g -> return [(1,g)]
+    genTypedAlg' = fmap (\ g -> [(1,g)]) . genTypedAlg
 {-
 genTyped :: forall f . (Traversable f, GenTyped f) => BaseType -> Gen (Term f)
-genTyped = run 
+genTyped = run
     where run :: BaseType -> Gen (Term f)
-          run t = liftM Term $ genTypedAlg t >>= mapM (desize . run)
+          run t = Term <$> (genTypedAlg t >>= mapM (desize . run))
 
 desize :: Gen a -> Gen a
 desize gen = sized (\n -> resize (max 0 (n-1)) gen)
@@ -127,7 +123,7 @@ forAllTyped f = forAll genSomeTyped f
 
 
 instance (GenTyped f, GenTyped g) => GenTyped (f :+: g) where
-    genTypedAlg' t = do 
+    genTypedAlg' t = do
       left <- genTypedAlg' t
       right <- genTypedAlg' t
       let left' = map inl left

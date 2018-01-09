@@ -174,8 +174,6 @@ library
                         Data.Comp.Derive.DeepSeq
                         Data.Comp.Derive.SmartConstructors
                         Data.Comp.Derive.SmartAConstructors
-                        Data.Comp.Derive.Foldable
-                        Data.Comp.Derive.Traversable
                         Data.Comp.Derive.HaskellStrict
 
                         Data.Comp.Multi.Derive.HFunctor
@@ -189,9 +187,9 @@ library
 
   Build-Depends:	base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.11, derive,
                         deepseq, th-expand-syns, transformers, tree-view >= 0.5
-  Extensions:           PolyKinds, FlexibleContexts
+  Extensions:           LambdaCase, PolyKinds, FlexibleContexts
   hs-source-dirs:	src
-  ghc-options:          -W
+  ghc-options:          -Wall -Wno-name-shadowing -Wno-unticked-promoted-constructors -Wno-orphans
 
 
 Test-Suite test
@@ -201,6 +199,7 @@ Test-Suite test
   Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.11,
                         HUnit, test-framework, test-framework-hunit, test-framework-quickcheck2 >= 0.3, derive,
                         th-expand-syns, deepseq, transformers
+  Extensions:           LambdaCase, PolyKinds, DeriveFoldable, DeriveTraversable
 
 Benchmark algebra
   Type:                 exitcode-stdio-1.0
@@ -210,6 +209,7 @@ Benchmark algebra
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
   cpp-options:          -DNO_RULES
   Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.11, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
+  Extensions:           LambdaCase, PolyKinds, DeriveFoldable, DeriveTraversable
 
 
 source-repository head

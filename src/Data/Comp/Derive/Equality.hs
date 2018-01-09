@@ -18,7 +18,7 @@ module Data.Comp.Derive.Equality
     ) where
 
 import Data.Comp.Derive.Utils
-import Language.Haskell.TH hiding (Cxt, match)
+import Language.Haskell.TH hiding (Cxt)
 
 
 {-| Signature equality. An instance @EqF f@ gives rise to an instance

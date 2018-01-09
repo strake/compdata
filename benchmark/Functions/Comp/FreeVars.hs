@@ -1,5 +1,4 @@
 {-# LANGUAGE
-  TemplateHaskell,
   MultiParamTypeClasses,
   FlexibleInstances,
   FlexibleContexts,

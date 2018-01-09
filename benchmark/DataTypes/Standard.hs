@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeSynonymInstances, TemplateHaskell, DeriveDataTypeable #-}
-module DataTypes.Standard 
+module DataTypes.Standard
     ( module DataTypes.Standard,
-      module DataTypes 
+      module DataTypes
     ) where
 
 import DataTypes
@@ -80,11 +80,11 @@ instance Show OExpr where
     show (OEq x y) = showBinOp "==" (show x) (show y)
     show (OLt x y) = showBinOp "<" (show x) (show y)
     show (OAnd x y) = showBinOp "&&" (show x) (show y)
-    show (ONot x) = "~" ++ (show x)
-    show (OProj SProjLeft x) = (show x) ++ "!0"
-    show (OProj SProjRight x) = (show x) ++ "!1"
+    show (ONot x) = "~" ++ show x
+    show (OProj SProjLeft x) = show x ++ "!0"
+    show (OProj SProjRight x) = show x ++ "!1"
 
-instance Show VType where 
+instance Show VType where
     show VTInt = "Int"
     show VTBool = "Bool"
     show (VTPair x y) = "(" ++ show x ++ "," ++ show y ++ ")"

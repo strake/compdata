@@ -50,10 +50,10 @@ import Data.Foldable hiding (and)
 
 import qualified Data.IntSet as IntSet
 
-import Control.Monad hiding (mapM, sequence)
+import Control.Monad
 import Data.Traversable
 
-import Prelude hiding (foldl, foldl1, foldr, foldr1, mapM, sequence)
+import Prelude
 
 
 -- | This type represents terms with thunks.
@@ -74,7 +74,7 @@ whnf (Term (Inl m)) = m >>= whnf
 whnf (Term (Inr t)) = return t
 
 whnf' :: Monad m => TermT m f -> m (TermT m f)
-whnf' = liftM (inject_ Inr) . whnf
+whnf' = fmap (inject_ Inr) . whnf
 
 -- | This function first evaluates the argument term into whnf via
 -- 'whnf' and then projects the top-level signature to the desired
@@ -106,13 +106,13 @@ eval2 cont x y = (\ x' -> cont x' `eval` y) `eval` x
 
 -- | This function evaluates all thunks.
 nf :: (Monad m, Traversable f) => TermT m f -> m (Term f)
-nf = liftM Term . mapM nf <=< whnf
+nf = fmap Term . mapM nf <=< whnf
 
 -- | This function evaluates all thunks while simultaneously
 -- projecting the term to a smaller signature. Failure to do the
 -- projection is signalled as a failure in the monad as in 'whnfPr'.
 nfPr :: (Monad m, Traversable g, g :<: f) => TermT m f -> m (Term g)
-nfPr = liftM Term . mapM nfPr <=< whnfPr
+nfPr = fmap Term . mapM nfPr <=< whnfPr
 
 -- | This function inspects a term (using 'nf') according to the
 -- given function.
@@ -120,7 +120,7 @@ deepEval :: (Traversable f, Monad m) =>
             (Term f -> TermT m f) -> TermT m f -> TermT m f
 deepEval cont v = case deepProject_ fromInr v of
                     Just v' -> cont v'
-                    _ -> thunk $ liftM cont $ nf v
+                    _ -> thunk $ cont <$> nf v
 
 infixl 1 #>>
 
@@ -154,7 +154,7 @@ cataT alg = cataTM (return . alg)
 -- | This combinator makes the evaluation of the given functor
 -- application strict by evaluating all thunks of immediate subterms.
 strict :: (f :<: g, Traversable f, Monad m) => f (TermT m g) -> TermT m g
-strict x = thunk $ liftM (inject_ (Inr . inj)) $ mapM whnf' x
+strict x = thunk $ inject_ (Inr . inj) <$> mapM whnf' x
 
 -- | This type represents position representations for a functor
 -- @f@. It is a function that extracts a number of components (of
@@ -167,7 +167,7 @@ type Pos f = forall a . f a -> [a]
 -- argument of this combinator specifies which positions are supposed
 -- to be strict.
 strictAt :: (f :<: g, Traversable f, Monad m) => Pos f ->  f (TermT m g) -> TermT m g
-strictAt p s = thunk $ liftM (inject_ (Inr . inj)) $ mapM run s'
+strictAt p s = thunk $ inject_ (Inr . inj) <$> mapM run s'
     where s'  = number s
           isStrict (Numbered i _) = IntSet.member i $ IntSet.fromList $ map (\(Numbered i _) -> i) $ p s'
           run e | isStrict e = whnf' $ unNumbered e
@@ -180,4 +180,4 @@ eqT s t = do s' <- whnf s
              t' <- whnf t
              case eqMod s' t' of
                Nothing -> return False
-               Just l -> liftM and $ mapM (uncurry eqT) l
+               Just l -> and <$> mapM (uncurry eqT) l

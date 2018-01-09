@@ -43,11 +43,11 @@ instance (Op :<: v, Functor v) => Desug Op v where
     desugAlg = liftCxt
 
 instance (Op :<: v, Value :<: v, Functor v) => Desug Sugar v where
-    desugAlg (Neg x) =  iVInt (-1) `iMult` (Hole x)
-    desugAlg (Minus x y) =  (Hole x) `iPlus` ((iVInt (-1)) `iMult` (Hole y))
-    desugAlg (Gt x y) =  (Hole y) `iLt` (Hole x)
+    desugAlg (Neg x) =  iVInt (-1) `iMult` Hole x
+    desugAlg (Minus x y) =  Hole x `iPlus` (iVInt (-1) `iMult` Hole y)
+    desugAlg (Gt x y) =  Hole y `iLt` Hole x
     desugAlg (Or x y) = iNot (iNot (Hole x) `iAnd` iNot (Hole y))
-    desugAlg (Impl x y) = iNot ((Hole x) `iAnd` iNot (Hole y))
+    desugAlg (Impl x y) = iNot (Hole x `iAnd` iNot (Hole y))
 
 
 -- standard algebraic approach
@@ -72,7 +72,7 @@ instance (Op :<: v) => Desug2 Op v where
 
 instance (Op :<: v, Value :<: v, Functor v) => Desug2 Sugar v where
     desugAlg2 (Neg x) =  iVInt (-1) `iMult` x
-    desugAlg2 (Minus x y) =  x `iPlus` ((iVInt (-1)) `iMult` y)
+    desugAlg2 (Minus x y) =  x `iPlus` (iVInt (-1) `iMult` y)
     desugAlg2 (Gt x y) =  y `iLt` x
     desugAlg2 (Or x y) = iNot (iNot x `iAnd` iNot y)
     desugAlg2 (Impl x y) = iNot (x `iAnd` iNot y)

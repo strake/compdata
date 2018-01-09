@@ -22,7 +22,7 @@ module Examples.Multi.EvalM where
 
 import Data.Comp.Multi
 import Data.Comp.Multi.Derive
-import Control.Monad (liftM)
+import Control.Monad (fmap)
 import Examples.Multi.Common
 
 -- Monadic term evaluation algebra
@@ -44,8 +44,8 @@ instance (Value :<: v) => EvalM Op v where
   evalAlgM (Mult x y) = do n1 <- projC x
                            n2 <- projC y
                            return $ iConst $ n1 * n2
-  evalAlgM (Fst v)    = liftM fst $ projP v
-  evalAlgM (Snd v)    = liftM snd $ projP v
+  evalAlgM (Fst v)    = fst <$> projP v
+  evalAlgM (Snd v)    = snd <$> projP v
 
 projC :: (Value :<: v) => Term v Int -> Maybe Int
 projC v = case project v of

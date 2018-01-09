@@ -30,7 +30,7 @@ smartConstructors :: Name -> Q [Dec]
 smartConstructors fname = do
     Just (DataInfo _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname
     let cons = map abstractConType constrs
-    liftM concat $ mapM (genSmartConstr (map tyVarBndrName targs) tname) cons
+    concat <$> mapM (genSmartConstr (map tyVarBndrName targs) tname) cons
         where genSmartConstr targs tname (name, args) = do
                 let bname = nameBase name
                 genSmartConstr' targs tname (mkName $ 'i' : bname) name args

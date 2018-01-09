@@ -56,9 +56,7 @@ import Data.Comp.Algebra
 import Data.Comp.Ops
 import Data.Comp.Term
 
-import Control.Monad hiding (mapM, sequence)
-import Prelude hiding (mapM, sequence)
-
+import Control.Monad
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe
@@ -87,7 +85,7 @@ deepProject = appSigFunM' proj
 -- | Tries to coerce a term/context to a term/context over a sub-signature. If
 -- the signature @g@ is compound of /n/ atomic signatures, use
 -- @deepProject@/n/ instead.
-deepProject_ :: (Traversable g) => (SigFunM Maybe f g) -> CxtFunM Maybe f g
+deepProject_ :: (Traversable g) => SigFunM Maybe f g -> CxtFunM Maybe f g
 {-# INLINE deepProject_ #-}
 deepProject_ = appSigFunM'
 

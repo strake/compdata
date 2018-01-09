@@ -26,7 +26,7 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Ops 
+module Data.Comp.Multi.Ops
     ( module Data.Comp.Multi.Ops
     , (O.:*:)(..)
     , O.ffst
@@ -78,8 +78,8 @@ instance (HFoldable f, HFoldable g) => HFoldable (f :+: g) where
 instance (HTraversable f, HTraversable g) => HTraversable (f :+: g) where
     htraverse f (Inl e) = Inl <$> htraverse f e
     htraverse f (Inr e) = Inr <$> htraverse f e
-    hmapM f (Inl e) = Inl `liftM` hmapM f e
-    hmapM f (Inr e) = Inr `liftM` hmapM f e
+    hmapM f (Inl e) = Inl `fmap` hmapM f e
+    hmapM f (Inr e) = Inr `fmap` hmapM f e
 
 -- The subsumption relation.
 
@@ -177,8 +177,8 @@ instance (HFoldable f) => HFoldable (f :&: a) where
 
 
 instance (HTraversable f) => HTraversable (f :&: a) where
-    htraverse f (v :&: c) =  (:&: c) <$> (htraverse f v)
-    hmapM f (v :&: c) = liftM (:&: c) (hmapM f v)
+    htraverse f (v :&: c) = (:&: c) <$> htraverse f v
+    hmapM     f (v :&: c) = (:&: c) <$> hmapM     f v
 
 -- | This class defines how to distribute an annotation over a sum of
 -- signatures.
@@ -212,6 +212,6 @@ instance (DistAnn s p s') => DistAnn (f :+: s) p ((f :&: p) :+: s') where
     injectA p (Inl v) = Inl (v :&: p)
     injectA p (Inr v) = Inr $ injectA p v
 
-    projectA (Inl (v :&: p)) = (Inl v O.:&: p)
+    projectA (Inl (v :&: p)) = Inl v O.:&: p
     projectA (Inr v) = let (v' O.:&: p) = projectA v
-                        in  (Inr v' O.:&: p)
+                       in  Inr v' O.:&: p

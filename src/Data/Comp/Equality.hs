@@ -20,13 +20,12 @@ module Data.Comp.Equality
      eqMod,
     ) where
 
-import Control.Monad hiding (mapM_)
+import Control.Monad
 import Data.Comp.Derive.Equality
 import Data.Comp.Derive.Utils
 import Data.Comp.Ops
 import Data.Comp.Term
 import Data.Foldable
-import Prelude hiding (all, mapM_)
 
 -- instance (EqF f, Eq p) => EqF (f :*: p) where
 --    eqF (v1 :*: p1) (v2 :*: p2) = p1 == p2 && v1 `eqF` v2

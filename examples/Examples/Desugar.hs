@@ -32,7 +32,7 @@ import Examples.Eval
 
 -- Signature for syntactic sugar
 data Sugar a = Neg a | Swap a
-  deriving Functor
+  deriving (Functor, Foldable, Traversable)
 
 -- Source position information (line number, column number)
 data Pos = Pos Int Int
@@ -49,8 +49,7 @@ type SigP = Op :&: Pos :+: Value :&: Pos
 type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 
 -- Derive boilerplate code using Template Haskell
-$(derive [makeTraversable, makeFoldable,
-          makeEqF, makeShowF, makeOrdF, smartConstructors, smartAConstructors]
+$(derive [makeEqF, makeShowF, makeOrdF, smartConstructors, smartAConstructors]
          [''Sugar])
 
 instance (Op :<: f, Value :<: f, Functor f) => Desugar Sugar f where
