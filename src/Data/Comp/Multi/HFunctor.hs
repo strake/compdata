@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE DeriveTraversable         #-}
 {-# LANGUAGE DeriveFoldable            #-}
 {-# LANGUAGE DeriveFunctor             #-}
@@ -40,7 +41,9 @@ module Data.Comp.Multi.HFunctor
 
 import Data.Traversable
 import Data.Foldable
+import Data.Functor.Classes
 import Data.Functor.Compose
+import Data.Semigroup
 
 -- | The identity Functor.
 newtype I a = I {unI :: a} deriving (Functor, Foldable, Traversable)
@@ -104,3 +107,8 @@ infixl 5 :.:
 
 -- | This data type denotes the composition of two functor families.
 newtype (:.:) f g e t = Comp (f (g e) t)
+  deriving (Eq, Ord, Read, Show, Semigroup, Monoid, Bounded,
+            Functor, Foldable, Traversable, Applicative, Monad, Eq1, Ord1, Read1, Show1)
+
+instance (HFunctor f, HFunctor g) => HFunctor (f :.: g) where
+    hfmap f (Comp x) = Comp (hfmap (hfmap f) x)
