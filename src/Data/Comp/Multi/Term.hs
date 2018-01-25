@@ -34,6 +34,7 @@ module Data.Comp.Multi.Term
 import Data.Comp.Multi.HFoldable
 import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.HTraversable
+import Data.Comp.Term (Hole, NoHole)
 import Data.Monoid
 
 import Control.Applicative hiding (Const)
@@ -60,11 +61,6 @@ constTerm = Term . hfmap (const undefined)
 data Cxt h f a i where
     Term ::  f (Cxt h f a) i -> Cxt h f a i
     Hole :: a i -> Cxt Hole f a i
-
--- | Phantom type that signals that a 'Cxt' might contain holes.
-data Hole
--- | Phantom type that signals that a 'Cxt' does not contain holes.
-data NoHole
 
 -- | A context might contain holes.
 type Context = Cxt Hole

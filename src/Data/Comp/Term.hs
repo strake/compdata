@@ -3,6 +3,7 @@
 {-# LANGUAGE GADTs                #-}
 {-# LANGUAGE Rank2Types           #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE DataKinds            #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Term
@@ -56,19 +57,12 @@ supposed to be one of the phantom types 'Hole' and 'NoHole'. The
 second parameter is the signature of the context. The third parameter
 is the type of the holes. -}
 
-data Cxt :: * -> (* -> *) -> * -> * where
+data Cxt :: Bool -> (* -> *) -> * -> * where
             Term :: f (Cxt h f a) -> Cxt h f a
             Hole :: a -> Cxt Hole f a
 
-
-{-| Phantom type that signals that a 'Cxt' might contain holes.  -}
-
-data Hole
-
-{-| Phantom type that signals that a 'Cxt' does not contain holes.
--}
-
-data NoHole
+type Hole = 'True
+type NoHole = 'False
 
 type Context = Cxt Hole
 
