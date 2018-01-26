@@ -31,6 +31,7 @@ module Data.Comp.Multi.Annotation
      fmap',
      stripA,
      propAnn,
+     propAnnF,
      project'
     ) where
 
@@ -72,6 +73,11 @@ stripA = appSigFun remA
 propAnn :: (DistAnn f p f', DistAnn g p g', HFunctor g)
                => Hom f g -> Hom f' g'
 propAnn alg f' = ann p (alg f)
+    where (f O.:&: p) = projectA f'
+
+propAnnF :: (DistAnn f p f', DistAnn g p g', HFunctor g, Functor φ)
+               => HomM φ f g -> HomM φ f' g'
+propAnnF alg f' = ann p <$> alg f
     where (f O.:&: p) = projectA f'
 
 -- | This function is similar to 'project' but applies to signatures

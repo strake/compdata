@@ -19,6 +19,7 @@
 module Data.Comp.Multi.Desugar where
 
 import Data.Comp.Multi
+import Data.Comp.Multi.HTraversable
 
 
 -- |The desugaring term homomorphism.
@@ -46,3 +47,23 @@ desugarA = appHom (propAnn desugHom)
 -- |Default desugaring instance.
 instance (HFunctor f, HFunctor g, f :<: g) => Desugar f g where
     desugHom = simpCxt . inj
+
+
+class (HTraversable f, HTraversable g, Monad m) => DesugarM m f g where
+    desugHomM :: HomM m f g
+    desugHomM = desugHomM' . hfmap Hole
+    desugHomM' :: AlgM m f (Context g a)
+    desugHomM' x = appCxt <$> desugHomM x
+
+instance (DesugarM m f h, DesugarM m g h) => DesugarM m (f :+: g) h where
+    desugHomM = caseH desugHomM desugHomM
+
+desugarM :: DesugarM m f g => NatM m (Term f) (Term g)
+desugarM = appHomM desugHomM
+
+desugarMA :: (HTraversable f', HTraversable g', DistAnn f p f', DistAnn g p g', DesugarM m f g)
+          => NatM m (Term f') (Term g')
+desugarMA = appHomM (propAnnF desugHomM)
+
+instance (HTraversable f, HTraversable g, f :<: g, Monad m) => DesugarM m f g where
+    desugHomM = pure . simpCxt . inj
