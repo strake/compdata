@@ -52,15 +52,13 @@ module Data.Comp.Sum
      substHoles'
     ) where
 
-import Data.Comp.Algebra
-import Data.Comp.Ops
-import Data.Comp.Term
+import           Data.Comp.Algebra
+import           Data.Comp.Ops
+import           Data.Comp.Term
 
-import Control.Monad
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Maybe
-import Data.Traversable
+import           Data.Map          (Map)
+import qualified Data.Map          as Map
+import           Data.Maybe
 
 
 -- |Project the outermost layer of a term to a sub signature. If the signature

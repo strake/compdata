@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverlappingInstances  #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 --------------------------------------------------------------------------------
@@ -18,8 +17,8 @@
 
 module Data.Comp.Multi.Desugar where
 
-import Data.Comp.Multi
-import Data.Comp.Multi.HTraversable
+import           Data.Comp.Multi
+import           Data.Comp.Multi.HTraversable
 
 
 -- |The desugaring term homomorphism.
@@ -32,7 +31,7 @@ class (HFunctor f, HFunctor g) => Desugar f g where
 
 -- We make the lifting to sums explicit in order to make the Desugar
 -- class work with the default instance declaration further below.
-instance (Desugar f h, Desugar g h) => Desugar (f :+: g) h where
+instance {-# OVERLAPPING #-} (Desugar f h, Desugar g h) => Desugar (f :+: g) h where
     desugHom = caseH desugHom desugHom
 
 -- |Desugar a term.
@@ -45,7 +44,7 @@ desugarA :: (HFunctor f', HFunctor g', DistAnn f p f', DistAnn g p g',
 desugarA = appHom (propAnn desugHom)
 
 -- |Default desugaring instance.
-instance (HFunctor f, HFunctor g, f :<: g) => Desugar f g where
+instance {-# OVERLAPPABLE #-} (HFunctor f, HFunctor g, f :<: g) => Desugar f g where
     desugHom = simpCxt . inj
 
 
@@ -55,7 +54,7 @@ class (HTraversable f, HTraversable g, Monad m) => DesugarM m f g where
     desugHomM' :: AlgM m f (Context g a)
     desugHomM' x = appCxt <$> desugHomM x
 
-instance (DesugarM m f h, DesugarM m g h) => DesugarM m (f :+: g) h where
+instance {-# OVERLAPPING #-} (DesugarM m f h, DesugarM m g h) => DesugarM m (f :+: g) h where
     desugHomM = caseH desugHomM desugHomM
 
 desugarM :: DesugarM m f g => NatM m (Term f) (Term g)
@@ -65,5 +64,5 @@ desugarMA :: (HTraversable f', HTraversable g', DistAnn f p f', DistAnn g p g', 
           => NatM m (Term f') (Term g')
 desugarMA = appHomM (propAnnF desugHomM)
 
-instance (HTraversable f, HTraversable g, f :<: g, Monad m) => DesugarM m f g where
+instance {-# OVERLAPPABLE #-} (HTraversable f, HTraversable g, f :<: g, Monad m) => DesugarM m f g where
     desugHomM = pure . simpCxt . inj

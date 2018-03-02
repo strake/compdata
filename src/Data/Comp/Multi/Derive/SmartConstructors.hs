@@ -18,7 +18,6 @@ module Data.Comp.Multi.Derive.SmartConstructors
     ) where
 
 import Control.Arrow ((&&&))
-import Control.Monad
 import Data.Comp.Derive.Utils
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Term

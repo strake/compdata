@@ -35,10 +35,6 @@ import Data.Comp.Multi.HFoldable
 import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.HTraversable
 import Data.Comp.Term (Hole, NoHole)
-import Data.Monoid
-
-import Control.Applicative hiding (Const)
-import Control.Monad
 
 import Unsafe.Coerce
 

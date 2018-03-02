@@ -17,7 +17,6 @@ module Data.Comp.Multi.Derive.SmartAConstructors
      smartAConstructors
     ) where
 
-import Control.Monad
 import Data.Comp.Derive.Utils
 import Data.Comp.Multi.Annotation
 import Data.Comp.Multi.Sum

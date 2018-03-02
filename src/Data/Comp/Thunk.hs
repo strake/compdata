@@ -40,20 +40,19 @@ module Data.Comp.Thunk
     ,strict
     ,strictAt) where
 
-import Data.Comp.Algebra
-import Data.Comp.Equality
-import Data.Comp.Mapping
-import Data.Comp.Ops ((:+:) (..), fromInr)
-import Data.Comp.Sum
-import Data.Comp.Term
-import Data.Foldable hiding (and)
+import           Data.Comp.Algebra
+import           Data.Comp.Equality
+import           Data.Comp.Mapping
+import           Data.Comp.Ops      ((:+:) (..), fromInr)
+import           Data.Comp.Sum
+import           Data.Comp.Term
+import           Data.Foldable      hiding (and)
 
-import qualified Data.IntSet as IntSet
+import qualified Data.IntSet        as IntSet
 
-import Control.Monad
-import Data.Traversable
+import           Control.Monad
 
-import Prelude
+import           Prelude
 
 
 -- | This type represents terms with thunks.
@@ -84,7 +83,7 @@ whnfPr :: (Monad m, g :<: f) => TermT m f -> m (g (TermT m f))
 whnfPr t = do res <- whnf t
               case proj res of
                 Just res' -> return res'
-                Nothing -> fail "projection failed"
+                Nothing   -> fail "projection failed"
 
 -- | This function inspects the topmost non-thunk node (using
 -- 'whnf') according to the given function.
@@ -120,7 +119,7 @@ deepEval :: (Traversable f, Monad m) =>
             (Term f -> TermT m f) -> TermT m f -> TermT m f
 deepEval cont v = case deepProject_ fromInr v of
                     Just v' -> cont v'
-                    _ -> thunk $ cont <$> nf v
+                    _       -> thunk $ cont <$> nf v
 
 infixl 1 #>>
 
@@ -180,4 +179,4 @@ eqT s t = do s' <- whnf s
              t' <- whnf t
              case eqMod s' t' of
                Nothing -> return False
-               Just l -> and <$> mapM (uncurry eqT) l
+               Just l  -> and <$> mapM (uncurry eqT) l

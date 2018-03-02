@@ -1,11 +1,10 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverlappingInstances  #-}
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE PartialTypeSignatures #-}
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
 --------------------------------------------------------------------------------
@@ -42,19 +41,19 @@ module Data.Comp.Variables
     empty
     ) where
 
-import Control.Monad (guard)
-import Data.Comp.Algebra
-import Data.Comp.Derive
-import Data.Comp.Mapping
-import Data.Comp.Term
-import Data.Comp.Ops
-import Data.Foldable
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Maybe
-import Data.Set (Set)
-import qualified Data.Set as Set
-import Prelude hiding (foldl)
+import           Control.Monad     (guard)
+import           Data.Comp.Algebra
+import           Data.Comp.Derive
+import           Data.Comp.Mapping
+import           Data.Comp.Ops
+import           Data.Comp.Term
+import           Data.Foldable
+import           Data.Map          (Map)
+import qualified Data.Map          as Map
+import           Data.Maybe
+import           Data.Set          (Set)
+import qualified Data.Set          as Set
+import           Prelude           hiding (foldl)
 
 -- | This type represents substitutions of contexts, i.e. finite
 -- mappings from variables to contexts.
@@ -164,7 +163,7 @@ containsVar v = free (containsVarAlg v) (const False)
 variablesAlg :: (Ord v, HasVars f v, Traversable f) => Alg f (Set v)
 variablesAlg t = foldlBoundVars run local t
     where local = case isVar t of
-                    Just v -> Set.singleton v
+                    Just v  -> Set.singleton v
                     Nothing -> Set.empty
           run acc bvars vars = acc `Set.union` (vars `Set.difference` bvars)
 
@@ -181,7 +180,7 @@ variables = free variablesAlg (const Set.empty)
 variables' :: (Ord v, HasVars f v, Foldable f, Functor f) => Const f -> Set v
 variables' c = case isVar c of
                  Nothing -> Set.empty
-                 Just v -> Set.singleton v
+                 Just v  -> Set.singleton v
 
 {-| This multiparameter class defines substitution of values of type @t@ for
   variables of type @v@ in values of type @a@. -}
@@ -193,7 +192,7 @@ appSubst :: (Ord v, SubstVars v t a) => Map v t -> a -> a
 appSubst subst = substVars f
     where f v = Map.lookup v subst
 
-instance (Ord v, HasVars f v, Traversable f)
+instance {-# OVERLAPPING #-} (Ord v, HasVars f v, Traversable f)
     => SubstVars v (Cxt h f a) (Cxt h f a) where
         -- have to use explicit GADT pattern matching!!
         -- subst f = free (substAlg f) Hole
@@ -204,7 +203,7 @@ instance (Ord v, HasVars f v, Traversable f)
             Nothing  -> Term $ fmapBoundVars run t
               where run vars = doSubst (b `Set.union` vars)
 
-instance (SubstVars v t a, Functor f) => SubstVars v t (f a) where
+instance {-# OVERLAPPABLE #-} (SubstVars v t a, Functor f) => SubstVars v t (f a) where
     substVars f = fmap (substVars f)
 
 {-| This function composes two substitutions @s1@ and @s2@. That is,

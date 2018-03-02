@@ -20,7 +20,6 @@ module Data.Comp.Equality
      eqMod,
     ) where
 
-import Control.Monad
 import Data.Comp.Derive.Equality
 import Data.Comp.Derive.Utils
 import Data.Comp.Ops

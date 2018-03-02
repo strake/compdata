@@ -17,20 +17,17 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Derive.HaskellStrict
-    (
-     makeHaskellStrict
-     , haskellStrict
-     , haskellStrict'
-    ) where
+  ( makeHaskellStrict
+  , haskellStrict
+  , haskellStrict'
+  )
+where
 
-import Control.Monad
-import Data.Comp.Derive.Utils
-import Data.Comp.Sum
-import Data.Comp.Thunk
-import Data.Foldable
-import Data.Maybe
-import Data.Traversable
-import Language.Haskell.TH
+import           Data.Comp.Derive.Utils
+import           Data.Comp.Sum
+import           Data.Comp.Thunk
+import           Data.Maybe
+import           Language.Haskell.TH
 
 
 class HaskellStrict f where

@@ -18,15 +18,15 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Arbitrary
-    ( ArbitraryF(..)
-    )where
+  ( ArbitraryF(..)
+  )
+where
 
-import Control.Applicative
-import Data.Comp.Derive
-import Data.Comp.Derive.Utils
-import Data.Comp.Ops
-import Data.Comp.Term
-import Test.QuickCheck
+import           Data.Comp.Derive
+import           Data.Comp.Derive.Utils
+import           Data.Comp.Ops
+import           Data.Comp.Term
+import           Test.QuickCheck
 
 {-| This lifts instances of 'ArbitraryF' to instances of 'Arbitrary'
 for the corresponding term type. -}
@@ -48,7 +48,7 @@ instance (ArbitraryF f, Arbitrary p) => ArbitraryF (f :&: p) where
 instance (ArbitraryF f) => ArbitraryF (Context f) where
     arbitraryF = oneof [Term <$> arbitraryF , Hole <$> arbitrary]
     shrinkF (Term expr) = map Term $ shrinkF expr
-    shrinkF (Hole a) = map Hole $ shrink a
+    shrinkF (Hole a)    = map Hole $ shrink a
 
 
 {-| This lifts instances of 'ArbitraryF' to instances of 'Arbitrary'

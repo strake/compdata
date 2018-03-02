@@ -39,8 +39,6 @@ module Data.Comp.Multi.HFunctor
      (:.:)(..)
      ) where
 
-import Data.Traversable
-import Data.Foldable
 import Data.Functor.Classes
 import Data.Functor.Compose
 import Data.Semigroup

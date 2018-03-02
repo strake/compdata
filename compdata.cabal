@@ -166,7 +166,7 @@ library
                         Data.Comp.Multi.Desugar
                         Data.Comp.Multi.Projection
 
-  Other-Modules:        Data.Comp.SubsumeCommon
+                        Data.Comp.SubsumeCommon
                         Data.Comp.Derive.Equality
                         Data.Comp.Derive.Ordering
                         Data.Comp.Derive.Arbitrary
@@ -192,27 +192,27 @@ library
   ghc-options:          -Wall -Wno-name-shadowing -Wno-unticked-promoted-constructors -Wno-orphans
 
 
-Test-Suite test
+test-Suite test
   Type:                 exitcode-stdio-1.0
   Main-is:		Data_Test.hs
-  hs-source-dirs:	testsuite/tests examples src
+  hs-source-dirs:	testsuite/tests
+                      , examples
   Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.11,
                         HUnit, test-framework, test-framework-hunit, test-framework-quickcheck2 >= 0.3, derive,
-                        th-expand-syns, deepseq, transformers
+                        th-expand-syns, deepseq, transformers, compdata
   Extensions:           LambdaCase, PolyKinds, DeriveFoldable, DeriveTraversable
 
-Benchmark algebra
+benchmark algebra
   Type:                 exitcode-stdio-1.0
   Main-is:		Benchmark.hs
-  hs-source-dirs:	src benchmark
+  hs-source-dirs:	benchmark
   ghc-options:          -W -O2
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
   cpp-options:          -DNO_RULES
-  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.11, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
+  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.11, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers, compdata
   Extensions:           LambdaCase, PolyKinds, DeriveFoldable, DeriveTraversable
 
 
 source-repository head
   type:     git
-  location: https://github.com/pa-ba/compdata
-
+  location: https://git.target.com/RedOptHaskell/compdata

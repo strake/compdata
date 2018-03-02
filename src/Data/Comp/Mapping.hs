@@ -31,8 +31,6 @@ module Data.Comp.Mapping
 
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IntMap
-import Data.Traversable
-import Data.Foldable
 
 import Control.Monad.State
 

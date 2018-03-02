@@ -1,13 +1,12 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverlappingInstances  #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Variables
@@ -42,19 +41,19 @@ module Data.Comp.Multi.Variables
     empty
     ) where
 
-import Data.Comp.Multi.Algebra
-import Data.Comp.Multi.Derive
-import Data.Comp.Multi.HFoldable
-import Data.Comp.Multi.HFunctor
-import Data.Comp.Multi.Mapping
-import Data.Comp.Multi.Ops
+import           Data.Comp.Multi.Algebra
+import           Data.Comp.Multi.Derive
+import           Data.Comp.Multi.HFoldable
+import           Data.Comp.Multi.HFunctor
+import           Data.Comp.Multi.Mapping
+import           Data.Comp.Multi.Ops
 
-import Control.Monad (guard)
-import Data.Comp.Multi.Term
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Set (Set)
-import qualified Data.Set as Set
+import           Control.Monad             (guard)
+import           Data.Comp.Multi.Term
+import           Data.Map                  (Map)
+import qualified Data.Map                  as Map
+import           Data.Set                  (Set)
+import qualified Data.Set                  as Set
 
 
 type GSubst v a = Map v (A a)
@@ -185,7 +184,7 @@ variableList = Set.toList . variables
 variablesAlg :: (Ord v, HasVars f v, HTraversable f) => Alg f (K (Set v))
 variablesAlg t = K $ hfoldlBoundVars run local t
     where local = case isVar t of
-                    Just v -> Set.singleton v
+                    Just v  -> Set.singleton v
                     Nothing -> Set.empty
           run acc bvars (K vars) = acc `Set.union` (vars `Set.difference` bvars)
 
@@ -199,7 +198,7 @@ variables' :: (Ord v, HasVars f v, HFoldable f, HFunctor f)
             => Const f :=> Set v
 variables' c =  case isVar c of
                   Nothing -> Set.empty
-                  Just v -> Set.singleton v
+                  Just v  -> Set.singleton v
 
 {-| This function substitutes variables in a context according to a
 partial mapping from variables to contexts.-}
@@ -209,7 +208,7 @@ class SubstVars v t a where
 appSubst :: (Ord v, SubstVars v t a) => GSubst v t -> a :-> a
 appSubst subst = substVars (substFun subst)
 
-instance (Ord v, HasVars f v, HTraversable f) => SubstVars v (Cxt h f a) (Cxt h f a) where
+instance {-# OVERLAPPING #-} (Ord v, HasVars f v, HTraversable f) => SubstVars v (Cxt h f a) (Cxt h f a) where
     -- have to use explicit GADT pattern matching!!
     substVars subst = doSubst Set.empty
       where doSubst :: Set v -> Cxt h f a :-> Cxt h f a
@@ -220,7 +219,7 @@ instance (Ord v, HasVars f v, HTraversable f) => SubstVars v (Cxt h f a) (Cxt h 
                 where run :: Set v -> Cxt h f a :-> Cxt h f a
                       run vars = doSubst (b `Set.union` vars)
 
-instance (SubstVars v t a, HFunctor f) => SubstVars v t (f a) where
+instance {-# OVERLAPPABLE #-} (SubstVars v t a, HFunctor f) => SubstVars v t (f a) where
     substVars subst = hfmap (substVars subst)
 
 {-| This function composes two substitutions @s1@ and @s2@. That is,
