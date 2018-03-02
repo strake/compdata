@@ -1,6 +1,8 @@
 module Data.Comp.Equality_Test where
 
 
+import Control.Arrow ((***))
+
 import Data.Comp
 import Data.Comp.Equality
 import Data.Comp.Arbitrary
