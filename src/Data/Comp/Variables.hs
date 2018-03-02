@@ -110,7 +110,7 @@ instance HasVars f v => HasVars (f :&: a) v where
 
 isVar' :: (HasVars f v, Ord v) => Set v -> f a -> Maybe v
 isVar' b t = do v <- isVar t
-                v <$ guard (v `Set.member` b)
+                v <$ guard (not $ v `Set.member` b)
 
 -- | This combinator pairs every argument of a given constructor with
 -- the set of (newly) bound variables according to the corresponding
