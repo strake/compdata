@@ -41,5 +41,6 @@ class HFoldable t => HTraversable t where
     -- @
     --
     hmapM :: (Monad m) => NatM m a b -> NatM m (t a) (t b)
+    hmapM = htraverse
 
     htraverse :: (Applicative f) => NatM f a b -> NatM f (t a) (t b)
