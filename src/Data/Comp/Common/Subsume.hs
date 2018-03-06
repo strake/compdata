@@ -26,6 +26,8 @@ module Data.Comp.Common.Subsume
     , Proxy (..)
     ) where
 
+import Data.Proxy
+
 -- | This type is used in its promoted form only. It represents
 -- pointers from the left-hand side of a subsumption to the right-hand
 -- side.
@@ -37,8 +39,6 @@ data Pos = Here | Le Pos | Ri Pos | Sum Pos Pos
 -- found. 'Ambiguous' indicates that there are duplicates on the left-
 -- or the right-hand side.
 data Emb = Found Pos | NotFound | Ambiguous
-
-data Proxy a = P
 
 
 type family Choose (e1 :: Emb) (r :: Emb) :: Emb where

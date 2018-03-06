@@ -44,16 +44,16 @@ instance Proj (Found Here) f f where
     pr' _ = id
 
 instance Proj (Found p) f g => Proj (Found (Le p)) f (g, g') where
-    pr' _ = pr' (P :: Proxy (Found p)) . fst
+    pr' _ = pr' (Proxy :: Proxy (Found p)) . fst
 
 
 instance Proj (Found p) f g => Proj (Found (Ri p)) f (g', g) where
-    pr' _ = pr' (P :: Proxy (Found p)) . snd
+    pr' _ = pr' (Proxy :: Proxy (Found p)) . snd
 
 
 instance (Proj (Found p1) f1 g, Proj (Found p2) f2 g)
     => Proj (Found (Sum p1 p2)) (f1, f2) g where
-    pr' _ x = (pr' (P :: Proxy (Found p1)) x, pr' (P :: Proxy (Found p2)) x)
+    pr' _ x = (pr' (Proxy :: Proxy (Found p1)) x, pr' (Proxy :: Proxy (Found p2)) x)
 
 
 infixl 5 :<
@@ -70,4 +70,4 @@ type f :< g = (Proj (ComprEmb (Elem f g)) f g)
 -- compound value of type @p@.
 
 pr :: forall p q . (p :< q) => q -> p
-pr = pr' (P :: Proxy (ComprEmb (Elem p q)))
+pr = pr' (Proxy :: Proxy (ComprEmb (Elem p q)))

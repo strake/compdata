@@ -102,25 +102,25 @@ instance Subsume (Found Here) f f where
     prj' _ = Just
 
 instance Subsume (Found p) f g => Subsume (Found (Le p)) f (g :+: g') where
-    inj' _ = Inl . inj' (P :: Proxy (Found p))
+    inj' _ = Inl . inj' (Proxy :: Proxy (Found p))
 
-    prj' _ (Inl x) = prj' (P :: Proxy (Found p)) x
+    prj' _ (Inl x) = prj' (Proxy :: Proxy (Found p)) x
     prj' _ _       = Nothing
 
 instance Subsume (Found p) f g => Subsume (Found (Ri p)) f (g' :+: g) where
-    inj' _ = Inr . inj' (P :: Proxy (Found p))
+    inj' _ = Inr . inj' (Proxy :: Proxy (Found p))
 
-    prj' _ (Inr x) = prj' (P :: Proxy (Found p)) x
+    prj' _ (Inr x) = prj' (Proxy :: Proxy (Found p)) x
     prj' _ _       = Nothing
 
 instance (Subsume (Found p1) f1 g, Subsume (Found p2) f2 g)
     => Subsume (Found (Sum p1 p2)) (f1 :+: f2) g where
-    inj' _ (Inl x) = inj' (P :: Proxy (Found p1)) x
-    inj' _ (Inr x) = inj' (P :: Proxy (Found p2)) x
+    inj' _ (Inl x) = inj' (Proxy :: Proxy (Found p1)) x
+    inj' _ (Inr x) = inj' (Proxy :: Proxy (Found p2)) x
 
-    prj' _ x = case prj' (P :: Proxy (Found p1)) x of
+    prj' _ x = case prj' (Proxy :: Proxy (Found p1)) x of
                  Just y -> Just (Inl y)
-                 _      -> case prj' (P :: Proxy (Found p2)) x of
+                 _      -> case prj' (Proxy :: Proxy (Found p2)) x of
                              Just y -> Just (Inr y)
                              _      -> Nothing
 
@@ -132,10 +132,10 @@ type f :<: g = (Subsume (ComprEmb (Elem f g)) f g)
 
 
 inj :: forall f g a . (f :<: g) => f a :-> g a
-inj = inj' (P :: Proxy (ComprEmb (Elem f g)))
+inj = inj' (Proxy :: Proxy (ComprEmb (Elem f g)))
 
 proj :: forall f g a . (f :<: g) => NatM Maybe (g a) (f a)
-proj = prj' (P :: Proxy (ComprEmb (Elem f g)))
+proj = prj' (Proxy :: Proxy (ComprEmb (Elem f g)))
 
 type f :=: g = (f :<: g, g :<: f)
 
