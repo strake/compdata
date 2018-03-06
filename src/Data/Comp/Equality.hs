@@ -20,6 +20,7 @@ module Data.Comp.Equality
      eqMod,
     ) where
 
+import Control.Monad (guard)
 import Data.Comp.Derive.Equality
 import Data.Comp.Derive.Utils
 import Data.Comp.Ops
@@ -55,11 +56,6 @@ sense, 'eqMod' returns a 'Just' value containing a list of pairs
 consisting of corresponding components of the two functorial
 values. -}
 eqMod :: (EqF f, Functor f, Foldable f) => f a -> f b -> Maybe [(a,b)]
-eqMod s t
-    | unit s `eqF` unit' t = Just args
-    | otherwise = Nothing
-    where unit = fmap (const ())
-          unit' = fmap (const ())
-          args = toList s `zip` toList t
+eqMod s t = (toList s `zip` toList t) <$ guard ((() <$ s) `eqF` (() <$ t))
 
 $(derive [makeEqF] $ [''Maybe, ''[]] ++ tupleTypes 2 10)

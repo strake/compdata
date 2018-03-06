@@ -50,7 +50,10 @@ import           Data.Foldable      hiding (and)
 
 import qualified Data.IntSet        as IntSet
 
+import           Control.Applicative
+import           Control.Arrow
 import           Control.Monad
+import           Data.Function      (on)
 
 import           Prelude
 
@@ -80,10 +83,9 @@ whnf' = fmap (inject_ Inr) . whnf
 -- subsignature. Failure to do the projection is signalled as a
 -- failure in the monad.
 whnfPr :: (Monad m, g :<: f) => TermT m f -> m (g (TermT m f))
-whnfPr t = do res <- whnf t
-              case proj res of
-                Just res' -> return res'
-                Nothing   -> fail "projection failed"
+whnfPr = whnf >=> proj >>> \ case
+    Just res' -> return res'
+    Nothing   -> fail "projection failed"
 
 -- | This function inspects the topmost non-thunk node (using
 -- 'whnf') according to the given function.
@@ -175,8 +177,6 @@ strictAt p s = thunk $ inject_ (Inr . inj) <$> mapM run s'
 
 -- | This function decides equality of terms with thunks.
 eqT :: (EqF f, Foldable f, Functor f, Monad m) => TermT m f -> TermT m f -> m Bool
-eqT s t = do s' <- whnf s
-             t' <- whnf t
-             case eqMod s' t' of
-               Nothing -> return False
-               Just l  -> and <$> mapM (uncurry eqT) l
+eqT s t = (liftA2 eqMod `on` whnf) s t >>= \ case
+    Nothing -> return False
+    Just l  -> and <$> mapM (uncurry eqT) l

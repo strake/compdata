@@ -41,7 +41,7 @@ module Data.Comp.Variables
     empty
     ) where
 
-import           Control.Monad     (guard)
+import           Control.Monad     (mfilter)
 import           Data.Comp.Algebra
 import           Data.Comp.Derive
 import           Data.Comp.Mapping
@@ -108,8 +108,7 @@ instance HasVars f v => HasVars (f :&: a) v where
 -- @v@ is contained in the given set of variables.
 
 isVar' :: (HasVars f v, Ord v) => Set v -> f a -> Maybe v
-isVar' b t = do v <- isVar t
-                v <$ guard (not $ v `Set.member` b)
+isVar' b = mfilter (not . flip Set.member b) . isVar
 
 -- | This combinator pairs every argument of a given constructor with
 -- the set of (newly) bound variables according to the corresponding

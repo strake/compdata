@@ -47,8 +47,7 @@ unNumbered (Numbered _ x) = x
 number :: HTraversable f => f a :-> f (Numbered a)
 number x = evalState (hmapM run x) 0 where
   run b = do n <- get
-             put (n+1)
-             return $ Numbered n b
+             Numbered n b <$ put (n+1)
 
 
 

@@ -369,9 +369,7 @@ paraM :: forall f m a. (HTraversable f, Monad m) =>
          RAlgM m f a -> NatM m(Term f)  a
 paraM f = fmap fsnd . cataM run
     where run :: AlgM m f (Term f :*: a)
-          run t = do
-            a <- f t
-            return (Term (hfmap ffst t) :*: a)
+          run t = (Term (hfmap ffst t) :*:) <$> f t
 
 --------------------------------
 -- R-Coalgebras & Apomorphisms --

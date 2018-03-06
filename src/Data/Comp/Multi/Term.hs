@@ -1,4 +1,3 @@
-{-# LANGUAGE EmptyDataDecls      #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}

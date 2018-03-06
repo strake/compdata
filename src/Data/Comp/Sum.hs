@@ -118,11 +118,11 @@ split :: (f :=: f1 :+: f2) => (f1 (Term f) -> a) -> (f2 (Term f) -> a) -> Term f
 split f1 f2 (Term t) = spl f1 f2 t
 
 injectConst :: (Functor g, g :<: f) => Const g -> Cxt h f a
-injectConst = inject . fmap (const undefined)
+injectConst = inject . (undefined <$)
 
 
 projectConst :: (Functor g, g :<: f) => Cxt h f a -> Maybe (Const g)
-projectConst = fmap (fmap (const ())) . project
+projectConst = fmap (() <$) . project
 
 {-| This function injects a whole context into another context. -}
 injectCxt :: (Functor g, g :<: f) => Cxt h' g (Cxt h f a) -> Cxt h f a

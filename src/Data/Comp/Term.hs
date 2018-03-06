@@ -1,4 +1,3 @@
-{-# LANGUAGE EmptyDataDecls       #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE GADTs                #-}
 {-# LANGUAGE Rank2Types           #-}

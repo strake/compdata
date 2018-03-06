@@ -19,24 +19,12 @@ module Data.Comp.Decompose (
   Decomp (..),
   DecompTerm,
   Decompose (..),
-  structure,
-  arguments,
   decompose
   ) where
 
 import Data.Comp.Term
 import Data.Comp.Variables
 import Data.Foldable
-
-{-| This function computes the structure of a functorial value. -}
-
-structure :: (Functor f) => f a -> Const f
-structure = fmap (const ())
-
-{-| This function computes the arguments of a functorial value.  -}
-
-arguments :: (Foldable f) => f a -> [a]
-arguments = toList
 
 {-| This type represents decompositions of functorial values. -}
 
@@ -55,9 +43,7 @@ class (HasVars f v, Functor f, Foldable f) => Decompose f v where
     decomp :: f a -> Decomp f v a
     decomp t = case isVar t of
                  Just v -> Var v
-                 Nothing -> Fun sym args
-                     where sym = fmap (const ()) t
-                           args = arguments t
+                 Nothing -> Fun (() <$ t) (toList t)
 
 instance (HasVars f v, Functor f, Foldable f) => Decompose f v where
 

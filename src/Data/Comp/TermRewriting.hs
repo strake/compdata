@@ -67,9 +67,7 @@ substitution. -}
 
 matchRule ::  (Ord v, EqF f, Eq a, Functor f, Foldable f)
           => Rule f g v -> Cxt h f a -> Maybe (Context g v, Map v (Cxt h f a))
-matchRule (lhs,rhs) t = do
-  subst <- matchCxt lhs t
-  return (rhs,subst)
+matchRule (lhs,rhs) = fmap ((,) rhs) . matchCxt lhs
 
 -- | This function tries to match the rules of the given TRS against
 -- the given term (resp. context in general) at the root. The first
@@ -85,9 +83,7 @@ returns the result term of the rewrite step; otherwise @Nothing@. -}
 
 appRule :: (Ord v, EqF f, Eq a, Functor f, Foldable f)
           => Rule f f v -> Step (Cxt h f a)
-appRule rule t = do
-  (res, subst) <- matchRule rule t
-  return $ substHoles' res subst
+appRule rule = fmap (uncurry substHoles') . matchRule rule
 
 {-| This function tries to apply one of the rules in the given TRS at
 the root of the given term (resp. context in general) by trying each

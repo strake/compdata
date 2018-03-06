@@ -61,8 +61,7 @@ matchCxt :: (Ord v,EqF f, Eq (Cxt h f a), Functor f, Foldable f)
 matchCxt c1 c2 = do
   res <- matchCxt' c1 c2
   let insts = Map.elems res
-  mapM_ checkEq insts
-  return $ Map.map head res
+  head <$> res <$ mapM_ checkEq insts
     where checkEq [] = Nothing
           checkEq (c : cs)
               | all (== c) cs = Just ()
@@ -73,5 +72,4 @@ matches a term with variables against a context.  -}
 
 matchTerm :: (Ord v, EqF f, Eq (Cxt h f a) , Traversable f, HasVars f v)
           => Term f -> Cxt h f a -> Maybe (CxtSubst h a f v)
-matchTerm t = matchCxt (varsToHoles t)
-
+matchTerm = matchCxt . varsToHoles

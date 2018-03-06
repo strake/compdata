@@ -48,7 +48,7 @@ import           Data.Comp.Multi.HFunctor
 import           Data.Comp.Multi.Mapping
 import           Data.Comp.Multi.Ops
 
-import           Control.Monad             (guard)
+import           Control.Monad             (mfilter)
 import           Data.Comp.Multi.Term
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
@@ -109,8 +109,7 @@ $(derive [liftSum] [''HasVars])
 -- @v@ is contained in the given set of variables.
 
 isVar' :: (HasVars f v, Ord v) => Set v -> f a :=> Maybe v
-isVar' b t = do v <- isVar t
-                v <$ guard (not $ v `Set.member` b)
+isVar' b = mfilter (not . flip Set.member b) . isVar
 
 -- | This combinator pairs every argument of a given constructor with
 -- the set of (newly) bound variables according to the corresponding

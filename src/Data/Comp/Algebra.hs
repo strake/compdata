@@ -109,6 +109,8 @@ module Data.Comp.Algebra (
       futuM
     ) where
 
+import Control.Applicative
+import Control.Arrow ((&&&))
 import Control.Monad hiding (mapM, sequence)
 import Data.Comp.Ops
 import Data.Comp.Term
@@ -450,7 +452,7 @@ type Coalg f a = a -> f a
 ana :: forall a f . Functor f => Coalg f a -> a -> Term f
 ana f = run
     where run :: a -> Term f
-          run t = Term $ fmap run (f t)
+          run = Term . fmap run . f
 
 -- | Shortcut fusion variant of 'ana'.
 ana' :: forall a f . Functor f => Coalg f a -> a -> Term f
@@ -458,7 +460,7 @@ ana' f t = build (run t)
     where run :: forall b . a -> Alg f b -> b
           run t con = run' t where
               run' :: a ->  b
-              run' t = con $ fmap run' (f t)
+              run' = con . fmap run' . f
 {-# INLINE [2] ana' #-}
 build :: (forall a. Alg f a -> a) -> Term f
 {-# INLINE [1] build #-}
@@ -473,7 +475,7 @@ anaM :: forall a m f. (Traversable f, Monad m)
           => CoalgM m f a -> a -> m (Term f)
 anaM f = run
     where run :: a -> m (Term f)
-          run t = fmap Term $ f t >>= mapM run
+          run = f >=> fmap Term . traverse run
 
 
 --------------------------------
@@ -486,7 +488,7 @@ type RAlg f a = f (Term f, a) -> a
 {-| Construct a paramorphism from the given r-algebra. -}
 para :: (Functor f) => RAlg f a -> Term f -> a
 para f = snd . cata run
-    where run t = (Term $ fmap fst t, f t)
+    where run = Term . fmap fst &&& f
 
 {-| This type represents a monadic r-algebra over a functor @f@ and carrier
   @a@. -}
@@ -496,9 +498,7 @@ type RAlgM m f a = f (Term f, a) -> m a
 paraM :: (Traversable f, Monad m) =>
          RAlgM m f a -> Term f -> m a
 paraM f = fmap snd . cataM run
-    where run t = do
-            a <- f t
-            return (Term $ fmap fst t, a)
+    where run t = (,) (Term $ fst <$> t) <$> f t
 
 --------------------------------
 -- R-Coalgebras & Apomorphisms --
@@ -563,8 +563,7 @@ type CVAlgM m f a f' = f (Term f') -> m a
 histoM :: (Traversable f, Monad m, DistAnn f a f') =>
           CVAlgM m f a f' -> Term f -> m a
 histoM alg  = fmap (snd . projectTip) . cataM run
-    where run v = do r <- alg v
-                     return $ Term $ injectA r v
+    where run v = Term . flip injectA v <$> alg v
 
 -----------------------------------
 -- CV-Coalgebras & Futumorphisms --
@@ -600,7 +599,7 @@ type CVCoalg' f a = a -> Context f a
 futu' :: forall f a . Functor f => CVCoalg' f a -> a -> Term f
 futu' coa = run
     where run :: a -> Term f
-          run x = appCxt $ fmap run (coa x)
+          run = appCxt . fmap run . coa
 
 
 -------------------------------------------
