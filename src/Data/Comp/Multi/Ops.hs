@@ -38,7 +38,7 @@ import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.HTraversable
 import qualified Data.Comp.Ops as O
 
-import Data.Comp.SubsumeCommon
+import Data.Comp.Common.Subsume
 
 infixr 6 :+:
 

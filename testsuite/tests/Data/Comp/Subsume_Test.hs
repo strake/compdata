@@ -7,7 +7,7 @@ module Data.Comp.Subsume_Test where
 
 import Data.Comp
 import Data.Comp.Ops
-import Data.Comp.SubsumeCommon
+import Data.Comp.Common.Subsume
 
 
 import Test.Framework

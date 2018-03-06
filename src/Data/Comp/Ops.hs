@@ -31,7 +31,7 @@ import Data.Traversable
 
 import Control.Applicative
 import Control.Monad hiding (mapM, sequence)
-import Data.Comp.SubsumeCommon
+import Data.Comp.Common.Subsume
 
 
 import Prelude hiding (foldl, foldl1, foldr, foldr1, mapM, sequence)

@@ -27,7 +27,7 @@
 
 module Data.Comp.Multi.Projection (pr, (:<), (:*:)(..), ffst, fsnd) where
 
-import Data.Comp.SubsumeCommon
+import Data.Comp.Common.Subsume
 import Data.Comp.Multi.Ops hiding (Elem)
 
 type family Elem (f :: * -> *)

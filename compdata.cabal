@@ -166,7 +166,8 @@ library
                         Data.Comp.Multi.Desugar
                         Data.Comp.Multi.Projection
 
-                        Data.Comp.SubsumeCommon
+                        Data.Comp.Common.Subsume
+
                         Data.Comp.Derive.Equality
                         Data.Comp.Derive.Ordering
                         Data.Comp.Derive.Arbitrary

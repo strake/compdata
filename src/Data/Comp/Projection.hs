@@ -27,7 +27,7 @@
 
 module Data.Comp.Projection (pr, (:<)) where
 
-import Data.Comp.SubsumeCommon
+import Data.Comp.Common.Subsume
 
 type family Elem (f :: *)
                  (g :: *) :: Emb where

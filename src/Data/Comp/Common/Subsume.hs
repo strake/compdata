@@ -5,7 +5,7 @@
 
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.SubsumeCommon
+-- Module      :  Data.Comp.Common.Subsume
 -- Copyright   :  (c) 2014 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -17,7 +17,7 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.SubsumeCommon
+module Data.Comp.Common.Subsume
     ( ComprEmb
     , Pos (..)
     , Emb (..)
