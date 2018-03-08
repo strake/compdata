@@ -186,8 +186,16 @@ library
                         Data.Comp.Multi.Derive.SmartConstructors
                         Data.Comp.Multi.Derive.SmartAConstructors
 
-  Build-Depends:	base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.11, derive,
-                        deepseq, th-expand-syns, transformers, tree-view >= 0.5
+  Build-Depends:	base >= 4.7 && < 5
+                      , template-haskell >= 2.12 && < 2.13
+                      , transformers >= 0.5.2 && < 0.6
+                      , containers >= 0.5.10 && < 0.6
+                      , deepseq >= 1.4.3 && <1.5
+                      , mtl >= 2.2.1 && < 2.3
+                      , QuickCheck >= 2 && < 2.11
+                      , derive >= 2.6.3 && < 2.7
+                      , th-expand-syns >= 0.4.4 && < 0.5
+                      , tree-view >= 0.5 && < 0.6
   Extensions:           LambdaCase, PolyKinds, FlexibleContexts
   hs-source-dirs:	src
   ghc-options:          -Wall -Wno-name-shadowing -Wno-unticked-promoted-constructors -Wno-orphans
