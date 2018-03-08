@@ -99,6 +99,7 @@ Author:                 Patrick Bahr, Tom Hvitved
 Maintainer:             paba@diku.dk
 Build-Type:             Simple
 Cabal-Version:          >=1.9.2
+tested-with:            GHC ==8.2.2
 bug-reports:            https://github.com/pa-ba/compdata/issues
 
 extra-source-files:
